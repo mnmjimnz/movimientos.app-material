@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -20,21 +20,21 @@
 
             <!-- ACCIONES -->
             <div class="d-flex align-items-center gap-2 actions-scroll">
-                <a href="/Home/Index" class="btn btn-outline-secondary btn-sm">
-                    Categorías
+                <a href="/Home/Index" class="btn btn-outline-secondary btn-sm" data-mdb-ripple-init>
+                    <i class="fas fa-folder me-1"></i> Categorías
                 </a>
 
-                <a href="/Home/MetodoPagos" class="btn btn-outline-secondary btn-sm">
-                    Métodos de pago
+                <a href="/Home/MetodoPagos" class="btn btn-outline-secondary btn-sm" data-mdb-ripple-init>
+                    <i class="fas fa-credit-card me-1"></i> Métodos de pago
                 </a>
 
                 <div class="dropdown">
-                    <button class="btn btn-primary btn-sm dropdown-toggle"
+                    <button class="btn btn-primary btn-sm dropdown-toggle" data-mdb-ripple-init
                             type="button"
                             id="dropdownMovimientos"
                             data-bs-toggle="dropdown"
                             aria-expanded="false">
-                        Movimientos
+                        <i class="fas fa-exchange-alt me-1"></i> Movimientos
                     </button>
 
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownMovimientos">
@@ -140,19 +140,19 @@
         <div class="row g-3">
 
             <div class="col-md-4">
-                <div class="card border-success h-100">
+                <div class="card border border-success h-100 hover-shadow">
                     <div class="card-body">
-                        <h6 class="text-success">Créditos Totales</h6>
+                        <h6 class="text-success"><i class="fas fa-arrow-up me-2"></i>Créditos Totales</h6>
                         <h2 id="totalIngresos">0</h2>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-4">
-                <div class="card border-danger h-100">
+                <div class="card border border-danger h-100 hover-shadow">
                     <div class="card-body">
                         <h6 class="text-danger d-flex justify-content-between">
-                            Débitos Totales
+                            <span><i class="fas fa-arrow-down me-2"></i>Débitos Totales</span>
                             <a href="/Home/VerTodosDebitos" class="small">Ver detalle</a>
                         </h6>
                         <h2 id="totalEgresos">0</h2>
@@ -161,28 +161,28 @@
             </div>
 
             <div class="col-md-4">
-                <div class="card border-secondary h-100">
-                    <div class="card-body">
-                        <h6>Saldo Actual</h6>
-                        <h2 id="saldo">0</h2>
+                <div class="card border border-secondary h-100 hover-shadow">
+                    <div class="card-body bg-light rounded-bottom">
+                        <h6><i class="fas fa-wallet me-2"></i>Saldo Actual</h6>
+                        <h2 id="saldo" class="fw-bold">0</h2>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-4">
-                <div class="card border-success h-100">
+                <div class="card border border-success h-100 hover-shadow">
                     <div class="card-body">
-                        <h6 class="text-success">Créditos Virtuales</h6>
+                        <h6 class="text-success"><i class="fas fa-cloud me-2"></i>Créditos Virtuales</h6>
                         <h2 id="totalIngresosVirtuales">0</h2>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-4">
-                <div class="card border-warning h-100">
+                <div class="card border border-warning h-100 hover-shadow">
                     <div class="card-body">
                         <h6 class="text-warning d-flex justify-content-between">
-                            Débitos Virtuales
+                            <span><i class="fas fa-cloud-download-alt me-2"></i>Débitos Virtuales</span>
                             <a href="/Home/MovimientosVirtuales" class="small">Ver detalle</a>
                         </h6>
                         <h2 id="totalEgresosVirtuales">0</h2>
@@ -191,10 +191,10 @@
             </div>
 
             <div class="col-md-4">
-                <div class="card border-info h-100">
-                    <div class="card-body">
-                        <h6 class="text-info">Saldo Virtual</h6>
-                        <h2 id="saldoActualVirtual">0</h2>
+                <div class="card border border-info h-100 hover-shadow">
+                    <div class="card-body bg-light rounded-bottom">
+                        <h6 class="text-info"><i class="fas fa-cloud-meatball me-2"></i>Saldo Virtual</h6>
+                        <h2 id="saldoActualVirtual" class="fw-bold">0</h2>
                     </div>
                 </div>
             </div>

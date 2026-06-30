@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -82,15 +82,15 @@
             </div>
 
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnAtras">
-                    ← Volver
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-mdb-ripple-init id="btnAtras">
+                    <i class="fas fa-arrow-left me-1"></i> Volver
                 </button>
 
-                <button class="btn btn-primary btn-sm"
+                <button class="btn btn-primary btn-sm" data-mdb-ripple-init
                         id="addCategoryBtn"
                         data-bs-toggle="modal"
                         data-bs-target="#categoriaModal">
-                    + Agregar Categoría
+                    <i class="fas fa-plus me-1"></i> Agregar Categoría
                 </button>
             </div>
         </div>
@@ -111,11 +111,11 @@
                 <div class="modal-body">
                     <form id="categoriaForm">
                         <input type="hidden" id="categoriaId" />
-                        <div class="mb-3">
-                            <label for="nombre" class="form-label">Nombre</label>
+                        <div class="form-outline mb-4">
                             <input type="text" class="form-control" id="nombre" required />
+                            <label for="nombre" class="form-label">Nombre de Categoría</label>
                         </div>
-                        <button type="submit" class="btn btn-success" id="submitBtn">Agregar Categoría</button>
+                        <button type="submit" class="btn btn-success" data-mdb-ripple-init id="submitBtn">Agregar Categoría</button>
                     </form>
                 </div>
             </div>
@@ -132,8 +132,8 @@
                     ¿Estás seguro de que deseas eliminar esta categoría?
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Eliminar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-mdb-ripple-init>Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn" data-mdb-ripple-init>Eliminar</button>
                 </div>
             </div>
         </div>
@@ -161,34 +161,35 @@
                         //            `);
                         $('#categoriaList').append(`
                         <div class="col-md-4 mb-3">
-                            <div class="card h-100 shadow-sm categoria-card"
-                                 style="cursor:pointer">
-                                <div class="card-body" data-id="${categoria.id}" data-name="${categoria.nombre}">
+                            <div class="card h-100 hover-shadow categoria-card" style="cursor:pointer">
+                                <div class="card-body ripple" data-mdb-ripple-init data-mdb-ripple-color="light" data-id="${categoria.id}" data-name="${categoria.nombre}">
                                     <h5 class="card-title mb-1">
-                                        ${categoria.nombre}
+                                        <i class="fas fa-folder text-primary me-2"></i>${categoria.nombre}
                                     </h5>
 
                                     <small class="text-muted">
-                                        Ver movimientos →
+                                        Ver movimientos <i class="fas fa-arrow-right ms-1"></i>
                                     </small>
                                 </div>
 
                                 <div class="card-footer bg-white border-0 d-flex justify-content-end gap-2">
-                                    <button class="btn btn-outline-warning btn-sm editBtn"
+                                    <button class="btn btn-warning btn-floating btn-sm editBtn" data-mdb-ripple-init
                                             data-id="${categoria.id}"
                                             data-name="${categoria.nombre}"
                                             data-bs-toggle="modal"
                                             data-bs-target="#categoriaModal"
+                                            title="Editar"
                                             >
-                                        ✏️
+                                        <i class="fas fa-pen"></i>
                                     </button>
 
-                                    <button class="btn btn-outline-danger btn-sm deleteBtn"
+                                    <button class="btn btn-danger btn-floating btn-sm deleteBtn" data-mdb-ripple-init
                                             data-id="${categoria.id}"
                                             data-bs-toggle="modal"
                                             data-bs-target="#confirmDeleteModal"
+                                            title="Eliminar"
                                             >
-                                        🗑️
+                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
                             </div>
