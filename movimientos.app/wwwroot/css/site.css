@@ -1,22 +1,118 @@
-html {
-  font-size: 14px;
-}
+/* Spendee UI Theme */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap');
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
+:root {
+  --sp-green: #2ecc71;
+  --sp-green-light: #e8f8f0;
+  --sp-red: #ff4d4f;
+  --sp-red-light: #ffecec;
+  --sp-bg: #f5f7fa;
+  --sp-dark: #1f2937;
+  --sp-gray: #6b7280;
+  --sp-blue: #3b82f6;
+  --sp-radius: 24px;
+  --sp-shadow: 0 12px 36px rgba(0, 0, 0, 0.04);
 }
 
 body {
+  font-family: 'Outfit', sans-serif;
+  background-color: var(--sp-bg) !important;
+  color: var(--sp-dark);
   margin-bottom: 60px;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  color: var(--sp-dark);
+}
+
+/* Cards */
+.card {
+  border-radius: var(--sp-radius) !important;
+  border: none !important;
+  box-shadow: var(--sp-shadow) !important;
+  background-color: #ffffff;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card.hover-shadow:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Buttons */
+.btn {
+  border-radius: 50px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: 0.5px;
+  padding: 0.6rem 1.5rem !important;
+}
+
+/* Custom Semantic Colors */
+.text-success { color: var(--sp-green) !important; }
+.text-danger { color: var(--sp-red) !important; }
+.bg-success { background-color: var(--sp-green) !important; }
+.bg-danger { background-color: var(--sp-red) !important; }
+
+/* Custom Badges / Pills */
+.badge-success { background-color: var(--sp-green-light) !important; color: var(--sp-green) !important; border: 1px solid var(--sp-green); }
+.badge-danger { background-color: var(--sp-red-light) !important; color: var(--sp-red) !important; border: 1px solid var(--sp-red); }
+
+/* Flex List for Movimientos */
+.sp-list-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(0,0,0,0.03);
+  transition: background-color 0.2s;
+}
+.sp-list-item:hover {
+  background-color: rgba(0,0,0,0.01);
+}
+.sp-list-item:last-child {
+  border-bottom: none;
+}
+.sp-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  margin-right: 16px;
+  flex-shrink: 0;
+}
+.sp-icon-green { background-color: var(--sp-green-light); color: var(--sp-green); }
+.sp-icon-red { background-color: var(--sp-red-light); color: var(--sp-red); }
+.sp-item-info { flex-grow: 1; }
+.sp-item-title { font-weight: 700; font-size: 1.05rem; margin: 0; color: var(--sp-dark); }
+.sp-item-subtitle { color: var(--sp-gray); font-size: 0.85rem; margin: 0; }
+.sp-item-amount { font-weight: 800; font-size: 1.2rem; }
+
+/* Navbar Overrides */
+.navbar-spendee {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+.navbar-spendee .navbar-brand {
+  font-weight: 800;
+  font-size: 1.6rem;
+  color: var(--sp-dark) !important;
+}
+.navbar-spendee .nav-link {
+  font-weight: 600;
+  color: var(--sp-gray) !important;
+  border-radius: 20px;
+  padding: 0.5rem 1rem !important;
+  margin: 0 0.2rem;
+  transition: all 0.2s;
+}
+.navbar-spendee .nav-link:hover, .navbar-spendee .nav-link.active {
+  background-color: #ffffff;
+  color: var(--sp-dark) !important;
+  box-shadow: var(--sp-shadow);
 }
