@@ -23,8 +23,8 @@
 
                 <button class="btn btn-primary btn-sm"
                         id="addMovimientoBtn"
-                        data-bs-toggle="modal"
-                        data-bs-target="#movimientoModal" onclick="limpiarFormulario()">
+                        data-mdb-ripple-init data-mdb-modal-init
+                        data-mdb-target="#movimientoModal" onclick="limpiarFormulario()">
                     + Agregar Movimiento
                 </button>
             </div>
@@ -37,8 +37,8 @@
 
             <button class="btn btn-primary"
                     id="addMovimientoBtn"
-                    data-bs-toggle="modal"
-                    data-bs-target="#movimientoModal"
+                    data-mdb-ripple-init data-mdb-modal-init
+                    data-mdb-target="#movimientoModal"
                     onclick="limpiarFormulario()">
                 + Agregar movimiento
             </button>
@@ -86,7 +86,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="movimientoModalLabel">Agregar Movimiento</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-mdb-ripple-init data-mdb-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="movimientoForm">
@@ -117,7 +117,7 @@
                                         <select class="form-select" id="id_subcategoria" required>
                                             <option value="" selected disabled>Seleccione subcategoría...</option>
                                         </select>
-                                        <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#nuevaSubCategoriaModal">
+                                        <button class="btn btn-outline-primary" type="button" data-mdb-ripple-init data-mdb-modal-init data-mdb-target="#nuevaSubCategoriaModal">
                                             <i class="bi bi-plus-lg">+</i>
                                         </button>
                                     </div>
@@ -154,13 +154,13 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Eliminación</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-mdb-ripple-init data-mdb-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     ¿Estás seguro de que deseas eliminar este movimiento?
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-secondary" data-mdb-ripple-init data-mdb-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Eliminar</button>
                 </div>
             </div>
@@ -171,7 +171,7 @@
             <div class="modal-content shadow-lg">
                 <div class="modal-header bg-light">
                     <h6 class="modal-title">Nueva Subcategoría</h6>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-mdb-ripple-init data-mdb-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <form id="subCategoriaRapidaForm">
@@ -266,11 +266,11 @@
     </td>
     <td class="text-end">
         <button class="btn btn-link btn-sm btn-rounded editBtn" data-mdb-ripple-init data-mdb-ripple-color="dark"
-                data-id="${movimiento.id}" data-bs-toggle="modal" data-bs-target="#movimientoModal" title="Editar">
+                data-id="${movimiento.id}" data-mdb-ripple-init data-mdb-modal-init data-mdb-target="#movimientoModal" title="Editar">
             <i class="fas fa-pen text-warning"></i>
         </button>
         <button class="btn btn-link btn-sm btn-rounded deleteBtn" data-mdb-ripple-init data-mdb-ripple-color="dark"
-                data-id="${movimiento.id}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" title="Eliminar">
+                data-id="${movimiento.id}" data-mdb-ripple-init data-mdb-modal-init data-mdb-target="#confirmDeleteModal" title="Eliminar">
             <i class="fas fa-trash text-danger"></i>
         </button>
     </td>
@@ -325,7 +325,8 @@
                         $('#fecha').val('');
                         $('#tipo').val('true');
                         $('#submitBtn').text('Agregar Movimiento');
-                        $('#movimientoModal').modal('hide');
+                        let myModal = mdb.Modal.getInstance(document.getElementById('movimientoModal'));
+                        if (myModal) myModal.hide();
                         getMovimientos($('#mes').val(),$("#anio").val());
                     }
                 });
@@ -364,7 +365,8 @@
                     url: `/api/movimientos/${id}`,
                     method: 'DELETE',
                     success: function() {
-                        $('#confirmDeleteModal').modal('hide');
+                        let myModal = mdb.Modal.getInstance(document.getElementById('confirmDeleteModal'));
+                        if (myModal) myModal.hide();
                         getMovimientos($('#mes').val(), $("#anio").val());
                     }
                 });
@@ -382,7 +384,7 @@
             });
             $('#mes').focus();
 
-            $('#movimientoModal').on('shown.bs.modal', function () {
+            document.getElementById('movimientoModal').addEventListener('shown.mdb.modal', function () {
                 cargarMetodosPago(null);
                 cargarsubCategorias();
             });
@@ -416,7 +418,8 @@
                 data: JSON.stringify({ nombre: nombre, id_padre: id_padre }),
                 contentType: 'application/json',
                 success: function (result) {
-                    $('#nuevaSubCategoriaModal').modal('hide');
+                    let myModal = mdb.Modal.getInstance(document.getElementById('nuevaSubCategoriaModal'));
+                    if (myModal) myModal.hide();
                     cargarsubCategorias(result);
                 }
             });
