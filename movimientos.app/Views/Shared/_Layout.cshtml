@@ -33,7 +33,7 @@
         }
     </style>
 </head>
-<body>
+<body class="bg-light">
     <header>
         <!-- Navbar -->
         <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-2-strong mb-4">
@@ -45,8 +45,8 @@
         </nav>
         <!-- Navbar -->
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+    <div class="container-fluid px-md-5">
+        <main role="main" class="pb-5">
             @RenderBody()
         </main>
     </div>
@@ -58,6 +58,8 @@
 
     <!-- MDB -->
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.1.0/mdb.umd.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @*@await RenderSectionAsync("Scripts", required: false)*@
     <script>

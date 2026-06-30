@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -75,7 +75,10 @@
 
         <div id="movimientosList" class="table-responsive-sm">
         </div>
-        <div class="d-flex justify-content-between"><button id="previousPage" class="btn btn-primary" onclick="changePage(-1)">Anterior</button><button id="nextPage" class="btn btn-primary" onclick="changePage(1)">Siguiente</button></div>
+        <div class="d-flex justify-content-between mt-3">
+            <button id="previousPage" class="btn btn-outline-primary" data-mdb-ripple-init onclick="changePage(-1)"><i class="fas fa-chevron-left me-1"></i>Anterior</button>
+            <button id="nextPage" class="btn btn-outline-primary" data-mdb-ripple-init onclick="changePage(1)">Siguiente<i class="fas fa-chevron-right ms-1"></i></button>
+        </div>
 
     </div>
     <div class="modal fade" id="movimientoModal" tabindex="-1" aria-labelledby="movimientoModalLabel" aria-hidden="true">
@@ -226,14 +229,14 @@
                     } else {
 
                         let table = `
-                            <table class="table table-sm">
-                                <thead>
+                            <div class="card shadow-0 border mb-3">
+                            <table class="table table-hover align-middle mb-0 bg-white">
+                                <thead class="bg-light">
                                     <tr>
-                                        <th>Monto</th>
-                                        <th>Descripción</th>
-                                        <th>Fecha-Metodo pago</th>
-                                        <th>Sub-Categoria</th>
-                                        <th>Acciones</th>
+                                        <th class="fw-bold">Descripción</th>
+                                        <th class="fw-bold">Detalles</th>
+                                        <th class="fw-bold text-end">Monto</th>
+                                        <th class="fw-bold text-end">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -246,35 +249,35 @@
                             }
                             table += `
 <tr>
-    <td class="fw-semibold text-end ${movimiento.tipo == 1 || movimiento.tipo == 3 ? 'text-success' : 'text-danger'
-                                }">
-        $${movimiento.monto}
-    </td>
-    <td>${movimiento.descripcion}</td>
     <td>
-        <small class="text-muted">
-            ${movimiento.fecha.split("T")[0]} · ${movimiento.metodopago?.metodo || 'N/A'}
-        </small>
+        <p class="fw-normal mb-1">${movimiento.descripcion}</p>
+        <span class="badge ${movimiento.tipo == 1 || movimiento.tipo == 3 ? 'badge-success' : 'badge-danger'} rounded-pill d-inline">
+            ${movimiento.tipo == 1 || movimiento.tipo == 3 ? 'Ingreso' : 'Egreso'}
+        </span>
     </td>
-    <td>${movimiento.subcategoria?.nombre || 'N/A'}</td>
+    <td>
+        <p class="text-muted mb-0"><i class="far fa-calendar-alt me-1"></i>${movimiento.fecha.split("T")[0]}</p>
+        <p class="text-muted mb-0"><i class="fas fa-credit-card me-1"></i>${movimiento.metodopago?.metodo || 'N/A'} | ${movimiento.subcategoria?.nombre || 'N/A'}</p>
+    </td>
     <td class="text-end">
-        <button class="btn btn-sm btn-outline-warning editBtn"
-                data-id="${movimiento.id}"
-                data-bs-toggle="modal"
-                data-bs-target="#movimientoModal">
-            ✏️
+        <span class="fw-bold ${movimiento.tipo == 1 || movimiento.tipo == 3 ? 'text-success' : 'text-danger'}">
+            ${movimiento.tipo == 1 || movimiento.tipo == 3 ? '+' : '-'}$${movimiento.monto}
+        </span>
+    </td>
+    <td class="text-end">
+        <button class="btn btn-link btn-sm btn-rounded editBtn" data-mdb-ripple-init data-mdb-ripple-color="dark"
+                data-id="${movimiento.id}" data-bs-toggle="modal" data-bs-target="#movimientoModal" title="Editar">
+            <i class="fas fa-pen text-warning"></i>
         </button>
-        <button class="btn btn-sm btn-outline-danger deleteBtn"
-                data-id="${movimiento.id}"
-                data-bs-toggle="modal"
-                data-bs-target="#confirmDeleteModal">
-            🗑️
+        <button class="btn btn-link btn-sm btn-rounded deleteBtn" data-mdb-ripple-init data-mdb-ripple-color="dark"
+                data-id="${movimiento.id}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal" title="Eliminar">
+            <i class="fas fa-trash text-danger"></i>
         </button>
     </td>
 </tr>
 `;
                         });
-                        table += '</tbody></table>';
+                        table += '</tbody></table></div>';
                         $('#movimientosList').append(table);
                     }
                     $("#totalcategoria").text(totalMonto.toFixed(2));

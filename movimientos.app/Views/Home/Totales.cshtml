@@ -136,8 +136,11 @@
             </div>
         </div>
 
-        <!-- Totales -->
-        <div class="row g-3">
+        <!-- Totales y Gráficos -->
+        <div class="row g-4">
+            <!-- Tarjetas de Métricas -->
+            <div class="col-lg-8">
+                <div class="row g-3">
 
             <div class="col-md-4">
                 <div class="card border border-success h-100 hover-shadow">
@@ -199,20 +202,65 @@
                 </div>
             </div>
 
+                </div>
+            </div>
+
+            <!-- Gráfico Resumen -->
+            <div class="col-lg-4">
+                <div class="card h-100 shadow-sm border-0 hover-shadow">
+                    <div class="card-body text-center d-flex flex-column justify-content-center">
+                        <h6 class="text-muted mb-4"><i class="fas fa-chart-pie me-2"></i>Distribución de Flujo Mensual</h6>
+                        <div style="position: relative; height:250px; width:100%">
+                            <canvas id="financeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
     <script src="~/js/swipeDiv.js"></script>
     <script>
+        let financeChart;
+
+        function updateChart(ingresos, egresos) {
+            const ctx = document.getElementById('financeChart').getContext('2d');
+            if (financeChart) { financeChart.destroy(); }
+            financeChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Créditos', 'Débitos'],
+                    datasets: [{
+                        data: [ingresos, egresos],
+                        backgroundColor: ['#00b74a', '#f93154'],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    },
+                    cutout: '70%'
+                }
+            });
+        }
+
         // Función para obtener los totales según el mes seleccionado
         function obtenerTotales(mes, anio) {
             $.get(`/api/movimientos/totales?mes=${mes}&anio=${anio}`, function (data) {
                 // Actualizar los valores de los totales
-                $('#totalIngresos').text(data.totalIngresos);
-                $('#totalEgresos').text(data.totalEgresos);
-                $('#saldo').text(data.saldo);
-                $('#totalEgresosVirtuales').text(data.totalEgresoVirtual);
-                $('#saldoActualVirtual').text(data.saldoParcial);
-                $('#totalIngresosVirtuales').text(data.totalIngresoVirtual);
+                $('#totalIngresos').text('$' + data.totalIngresos);
+                $('#totalEgresos').text('$' + data.totalEgresos);
+                $('#saldo').text('$' + data.saldo);
+                $('#totalEgresosVirtuales').text('$' + data.totalEgresoVirtual);
+                $('#saldoActualVirtual').text('$' + data.saldoParcial);
+                $('#totalIngresosVirtuales').text('$' + data.totalIngresoVirtual);
+                
+                // Actualizar Gráfico
+                updateChart(data.totalIngresos, data.totalEgresos);
             }).fail(function () {
                 alert('Ocurrió un error al obtener los totales.');
             });
