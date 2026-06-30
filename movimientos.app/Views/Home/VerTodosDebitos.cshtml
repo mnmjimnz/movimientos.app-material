@@ -1,0 +1,113 @@
+﻿<div class="container">
+    <h3>
+        Debitos totales por mes
+    </h3>
+    <div class="row">
+        <div class="row mb-4 text-center">
+            <div class="col-6">
+                <label class="form-label fw-semibold">Mes</label>
+                <div id="mesControl" class="swipe-box">ENERO</div>
+            </div>
+
+            <div class="col-6">
+                <label class="form-label fw-semibold">Año</label>
+                <div id="anioControl" class="swipe-box">2026</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            Total Movimientos Virtuales: <strong id="total"></strong>
+        </div>
+    </div>
+    <div id="movimientosList" class="table-responsive">
+    </div>
+</div>
+<script src="~/js/swipeDiv.js"></script>
+<script>
+    function getTipo(tipo) {
+        switch (tipo) {
+            case 0: return 'Egreso';
+                break;
+            case 1: return 'Ingreso';
+                break;
+            case 2: return 'Egreso Virtual';
+                break;
+        }
+    }
+    function changePage(direction) {
+        PageNumber += direction;
+        getMovimientos($('#mes').val(), $("#anio").val());
+    }
+    function getMovimientos(mesSeleccionado, anio) {
+        //const mesSeleccionado = $('#mes').val(); // Tomar el mes seleccionado
+        $.get(`/api/movimientos/todoslosegresos?mes=${mesSeleccionado}&anio=${anio}`, function (data) {
+            $('#movimientosList').empty();
+            let totalMonto = 0;
+            if (data.length === 0) {
+                $('#movimientosList').append('<p>No hay movimientos para esta categoría.</p>');
+            } else {
+                let table = `
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Monto</th>
+                                            <th>Cantidad</th>
+                                            <th>Descripción</th>
+                                            <th>Fecha</th>
+                                            <th>Tipo</th>
+                                            <th>Categoria</th>
+                                            <th>Metodo de pago</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                            `;
+                data.forEach(function (movimiento) {
+                        totalMonto += parseFloat(movimiento.monto);
+                    table += `
+                                    <tr>
+                                        <td>${movimiento.monto}</td>
+                                        <td>${movimiento.cantidad}</td>
+                                        <td>${movimiento.descripcion}</td>
+                                        <td>${movimiento.fecha.split("T")[0]}</td>
+                                        <td>${getTipo(movimiento.tipo)}</td>
+                                        <td>${movimiento.categoria.nombre}</td>
+                                        <td>${movimiento.metodopago?.metodo || 'N/A'}</td>
+                                    </tr>
+                                `;
+                });
+                table += '</tbody></table>';
+                $('#movimientosList').append(table);
+            }
+            $("#total").text(totalMonto.toFixed(2));
+        });
+    }
+    
+    activarSwipe(mesBox,
+        () => { // ↑
+            mesIndex = (mesIndex + 1) % 12;
+            mesBox.textContent = meses[mesIndex];
+            getMovimientos(mesIndex + 1, anioActual);
+        },
+        () => { // ↓
+            mesIndex = (mesIndex - 1 + 12) % 12;
+            mesBox.textContent = meses[mesIndex];
+            getMovimientos(mesIndex + 1, anioActual);
+        }
+    );
+
+    activarSwipe(anioBox,
+        () => { // ↑
+            anioActual++;
+            anioBox.textContent = anioActual;
+            getMovimientos(mesIndex + 1, anioActual);
+        },
+        () => { // ↓
+            anioActual--;
+            anioBox.textContent = anioActual;
+            getMovimientos(mesIndex + 1, anioActual);
+        }
+    );
+
+    $(() => {
+        getMovimientos(mesIndex + 1, anioActual);
+    });
+</script>

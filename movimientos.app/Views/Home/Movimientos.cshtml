@@ -1,0 +1,452 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Movimientos para @ViewBag.NombreCategoria</title>
+</head>
+<body>
+    <div class="container mt-4">
+        <!-- Título + acción principal -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="mb-1">Gestión de Movimientos</h3>
+                <small class="text-muted">
+                    @ViewBag.NombreCategoria
+                </small>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnAtras">
+                    ← Volver
+                </button>
+
+                <button class="btn btn-primary btn-sm"
+                        id="addMovimientoBtn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#movimientoModal" onclick="limpiarFormulario()">
+                    + Agregar Movimiento
+                </button>
+            </div>
+        </div>
+        @*<div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h3 class="mb-0">Movimientos</h3>
+                <small class="text-muted">@ViewBag.NombreCategoria</small>
+            </div>
+
+            <button class="btn btn-primary"
+                    id="addMovimientoBtn"
+                    data-bs-toggle="modal"
+                    data-bs-target="#movimientoModal"
+                    onclick="limpiarFormulario()">
+                + Agregar movimiento
+            </button>
+        </div>*@
+        <div class="row mb-4 text-center">
+
+            <div class="col-6">
+                <label class="form-label fw-semibold">Mes</label>
+                <div id="mesControl" class="swipe-box">ENERO</div>
+            </div>
+
+            <div class="col-6">
+                <label class="form-label fw-semibold">Año</label>
+                <div id="anioControl" class="swipe-box">2026</div>
+            </div>
+
+        </div>
+        <!-- Filtros + totales -->
+        <div class="row align-items-end mb-4">
+            <div class="col-md-3">
+                <div class="border rounded p-2">
+                    <small class="text-muted">Total</small>
+                    <h5 class="mb-0">$<span id="totalcategoria">0</span></h5>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="border rounded p-2">
+                    <small class="text-muted">Total virtual</small>
+                    <h5 class="mb-0">$<span id="totalcategoriavirtual">0</span></h5>
+                </div>
+            </div>
+        </div>
+
+        <div id="movimientosList" class="table-responsive-sm">
+        </div>
+        <div class="d-flex justify-content-between"><button id="previousPage" class="btn btn-primary" onclick="changePage(-1)">Anterior</button><button id="nextPage" class="btn btn-primary" onclick="changePage(1)">Siguiente</button></div>
+
+    </div>
+    <div class="modal fade" id="movimientoModal" tabindex="-1" aria-labelledby="movimientoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="movimientoModalLabel">Agregar Movimiento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="movimientoForm">
+                        <input type="hidden" id="movimientoId" />
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label for="monto" class="form-label">Monto</label>
+                                    <input type="text" class="form-control" id="monto" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label for="cantidad" class="form-label">Cantidad</label>
+                                    <input type="number" class="form-control" id="cantidad" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label for="descripcion" class="form-label">Descripción</label>
+                                    <input type="text" class="form-control" id="descripcion" required />
+                                </div>
+                                <div class="mb-3">
+                                    <label for="fecha" class="form-label">Fecha</label>
+                                    <input type="date" class="form-control" id="fecha" required />
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mb-3">
+                                    <label for="id_subcategoria" class="form-label">Subcategoría (Detalle del gasto)</label>
+                                    <div class="input-group">
+                                        <select class="form-select" id="id_subcategoria" required>
+                                            <option value="" selected disabled>Seleccione subcategoría...</option>
+                                        </select>
+                                        <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#nuevaSubCategoriaModal">
+                                            <i class="bi bi-plus-lg">+</i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="tipo" class="form-label">Tipo</label>
+                                    <select class="form-control" id="tipo">
+                                        <option value="1">Ingreso</option>
+                                        <option value="0">Egreso</option>
+                                        <option value="2">Egreso Virtual</option>
+                                        <option value="3">Ingreso Virtual</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="metodopago" class="form-label">Tipo</label>
+                                    <select class="form-control" id="metodopago">
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-success" id="submitBtn">Guardar Movimiento</button>
+                            </div>
+                        </div>
+
+
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Estás seguro de que deseas eliminar este movimiento?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="nuevaSubCategoriaModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+            <div class="modal-content shadow-lg">
+                <div class="modal-header bg-light">
+                    <h6 class="modal-title">Nueva Subcategoría</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="subCategoriaRapidaForm">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre de la Subcategoría</label>
+                            <input type="text" class="form-control" id="newSubName" placeholder="Ej: Supermercado" required>
+                        </div>
+                        <button type="button" onclick="guardarSubCategoriaRapida()" class="btn btn-primary w-100">Crear y Seleccionar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="~/js/swipeDiv.js"></script>
+    <script>
+        var PageSize = 5;
+        var PageNumber = 1;
+        const categoriaId = '@ViewBag.CategoriaId';
+        function getTipo(tipo) {
+                switch (tipo) {
+                    case 0: return 'Egreso';
+                        break;
+                    case 1: return 'Ingreso';
+                        break;
+                    case 2: return 'Egreso Virtual';
+                        break;
+                        case 3: return 'Ingreso Virtual';
+                        break;
+                }
+            }
+        function cargarMetodosPago(idSeleccionado = null) {
+            $.get('/api/metodospagos', function (metodosPago) {
+                const select = $('#metodopago');
+                select.empty().append('<option value="">Seleccione un método</option>');
+
+                metodosPago.forEach(metodo => {
+                    const selected = idSeleccionado === metodo.id ? 'selected' : '';
+                    select.append(`<option value="${metodo.id}" ${selected}>${metodo.metodo}</option>`);
+                });
+            }).fail(function (error) {
+                console.error('Error al obtener los métodos de pago:', error);
+            });
+        }
+
+
+            // Obtener los movimientos
+            function getMovimientos(mesSeleccionado, anio) {
+                //const mesSeleccionado = $('#mes').val(); // Tomar el mes seleccionado
+                $.get(`/api/movimientos?categoria=${categoriaId}&mes=${mesSeleccionado}&anio=${anio}&PageSize=${PageSize}&PageNumber=${PageNumber}`, function(data) {
+                    $('#movimientosList').empty();
+                    let totalMonto = 0;
+                    let totalMontoVirtual = 0;
+                    if (data.length === 0) {
+                        $('#movimientosList').append('<p>No hay movimientos para esta categoría.</p>');
+                    } else {
+
+                        let table = `
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Monto</th>
+                                        <th>Descripción</th>
+                                        <th>Fecha-Metodo pago</th>
+                                        <th>Sub-Categoria</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+                        data.forEach(function(movimiento) {
+                            if(movimiento.tipo != 2 ){
+                                totalMonto += parseFloat(movimiento.monto);
+                            }else{
+                                totalMontoVirtual += parseFloat(movimiento.monto);
+                            }
+                            table += `
+<tr>
+    <td class="fw-semibold text-end ${movimiento.tipo == 1 || movimiento.tipo == 3 ? 'text-success' : 'text-danger'
+                                }">
+        $${movimiento.monto}
+    </td>
+    <td>${movimiento.descripcion}</td>
+    <td>
+        <small class="text-muted">
+            ${movimiento.fecha.split("T")[0]} · ${movimiento.metodopago?.metodo || 'N/A'}
+        </small>
+    </td>
+    <td>${movimiento.subcategoria?.nombre || 'N/A'}</td>
+    <td class="text-end">
+        <button class="btn btn-sm btn-outline-warning editBtn"
+                data-id="${movimiento.id}"
+                data-bs-toggle="modal"
+                data-bs-target="#movimientoModal">
+            ✏️
+        </button>
+        <button class="btn btn-sm btn-outline-danger deleteBtn"
+                data-id="${movimiento.id}"
+                data-bs-toggle="modal"
+                data-bs-target="#confirmDeleteModal">
+            🗑️
+        </button>
+    </td>
+</tr>
+`;
+                        });
+                        table += '</tbody></table>';
+                        $('#movimientosList').append(table);
+                    }
+                    $("#totalcategoria").text(totalMonto.toFixed(2));
+                    $("#totalcategoriavirtual").text(totalMontoVirtual.toFixed(2));
+                    document.getElementById('previousPage').disabled = PageNumber === 1;
+                    document.getElementById('nextPage').disabled = data.length < PageSize;
+                });
+            }
+        function changePage(direction) {
+            PageNumber += direction;
+            getMovimientos(mesIndex + 1, anioActual);
+        }
+            // Llamar a la función para cargar movimientos cuando se carga la página
+            //getMovimientos($('#mes').val(), $("#anio").val());
+            // Crear o actualizar un movimiento
+            $('#movimientoForm').submit(function(e) {
+                e.preventDefault();
+                const id = $('#movimientoId').val();
+                const movimiento = {
+                    id: id ? id : 0,
+                    monto: $('#monto').val(),
+                    cantidad: $('#cantidad').val(),
+                    descripcion: $('#descripcion').val(),
+                    fecha: $('#fecha').val(),
+                    tipo: $('#tipo').val(),
+                    id_Categoria: categoriaId,
+                    id_metodopago: $('#metodopago').val(),
+                    id_subcategoria: $("#id_subcategoria").val()
+                };
+
+                const url = id ? `/api/movimientos` : `/api/movimientos`; // Siempre la misma URL
+                const method = id ? 'PUT' : 'POST'; // Si tiene id, usar PUT, sino POST
+
+                $.ajax({
+                    url: url,
+                    method: method,
+                    data: JSON.stringify(movimiento),
+                    contentType: 'application/json',
+                    success: function() {
+                        // Limpiar formulario y recargar movimientos
+                        $('#movimientoId').val('');
+                        $('#monto').val('');
+                        $('#cantidad').val('');
+                        $('#descripcion').val('');
+                        $('#fecha').val('');
+                        $('#tipo').val('true');
+                        $('#submitBtn').text('Agregar Movimiento');
+                        $('#movimientoModal').modal('hide');
+                        getMovimientos($('#mes').val(),$("#anio").val());
+                    }
+                });
+            });
+
+            // Editar movimiento
+            $(document).on('click', '.editBtn', function() {
+                const id = $(this).data('id');
+                $.ajax({
+                    url: `/api/movimientos/GetMovimientoId?categoria=${id}`,
+                    method: 'GET',
+                    success: function(data) {
+                        $('#movimientoId').val(data.id);
+                        $('#monto').val(data.monto);
+                        $('#cantidad').val(data.cantidad);
+                        $('#descripcion').val(data.descripcion);
+                        $('#fecha').val(data.fecha.split("T")[0]);
+                        $('#tipo').val(data.tipo);
+                        cargarMetodosPago(data.id_metodopago);
+                        $('#submitBtn').text('Actualizar Movimiento');
+                        cargarsubCategorias(data.id_subcategoria);
+                    }
+                });
+            });
+
+            // Mostrar modal de confirmación para eliminar movimiento
+            $(document).on('click', '.deleteBtn', function() {
+                const id = $(this).data('id');
+                $('#confirmDeleteBtn').data('id', id); // Guardar el ID para usarlo al confirmar la eliminación
+            });
+
+            // Confirmar eliminación de movimiento
+            $('#confirmDeleteBtn').click(function() {
+                const id = $(this).data('id');
+                $.ajax({
+                    url: `/api/movimientos/${id}`,
+                    method: 'DELETE',
+                    success: function() {
+                        $('#confirmDeleteModal').modal('hide');
+                        getMovimientos($('#mes').val(), $("#anio").val());
+                    }
+                });
+            });
+
+            // Actualizar los movimientos cada vez que se cambie el mes
+            $('#mes').change(function() {
+                getMovimientos(this.value, $("#anio").val());
+            });
+            $('#anio').change(function () {
+                getMovimientos($("#mes").val(), this.value);
+            });
+            $('#btnAtras').click(function () {
+                location.href = "/Home/Index";
+            });
+            $('#mes').focus();
+
+            $('#movimientoModal').on('shown.bs.modal', function () {
+                cargarMetodosPago(null);
+                cargarsubCategorias();
+            });
+        function limpiarFormulario(){
+            $("#movimientoForm")[0].reset();
+            $('#movimientoId').val('');
+            $('#submitBtn').text('Guardar Movimiento');
+        }
+        function cargarsubCategorias(idSeleccionado = null) {
+            $.get('/api/categoria/getsubcategorias', function (metodosPago) {
+                let select = $('#id_subcategoria');
+                select.empty().append('<option value="">Seleccione un método</option>');
+
+                metodosPago.forEach(metodo => {
+                    let selected = idSeleccionado === metodo.id ? 'selected' : '';
+                    select.append(`<option value="${metodo.id}" ${selected}>${metodo.nombre}</option>`);
+                });
+            }).fail(function (error) {
+                console.error('Error al obtener los métodos de pago:', error);
+            });
+        }
+        function guardarSubCategoriaRapida() {
+            let id_padre = categoriaId;
+            let nombre = $('#newSubName').val();
+            let url = '/api/categoria/guardarSubCategoria'; // Si tiene id, es actualizar
+            let method = 'POST'; // Si tiene id, usar PUT
+
+            $.ajax({
+                url: url,
+                method: method,
+                data: JSON.stringify({ nombre: nombre, id_padre: id_padre }),
+                contentType: 'application/json',
+                success: function (result) {
+                    $('#nuevaSubCategoriaModal').modal('hide');
+                    cargarsubCategorias(result);
+                }
+            });
+        }
+
+
+
+        activarSwipe(mesBox,
+            () => { // ↑
+                mesIndex = (mesIndex + 1) % 12;
+                mesBox.textContent = meses[mesIndex];
+                getMovimientos(mesIndex + 1, anioActual);
+            },
+            () => { // ↓
+                mesIndex = (mesIndex - 1 + 12) % 12;
+                mesBox.textContent = meses[mesIndex];
+                getMovimientos(mesIndex + 1, anioActual);
+            }
+        );
+
+        activarSwipe(anioBox,
+            () => { // ↑
+                anioActual++;
+                anioBox.textContent = anioActual;
+                getMovimientos(mesIndex + 1, anioActual);
+            },
+            () => { // ↓
+                anioActual--;
+                anioBox.textContent = anioActual;
+                getMovimientos(mesIndex + 1, anioActual);
+            }
+        );
+        getMovimientos(mesIndex + 1, anioActual);
+    </script>
+</body>
+</html>

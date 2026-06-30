@@ -1,0 +1,145 @@
+﻿<div class="container">
+    <div class="row">
+        <div class="row mb-4 text-center">
+            <div class="col-6">
+                <label class="form-label fw-semibold">Año</label>
+                <div id="anioControl" class="swipe-box">2026</div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-6">
+            <div class="row">
+                <h3>Movimientos totales confirmados</h3>
+                <div id="listaconfirmados"></div>
+            </div>
+        </div>
+        <div class="col-sm-6">
+            <div class="row">
+                <h3>Movimientos totales esperados</h3>
+                <div id="listavirtuales"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="~/js/swipeDiv.js"></script>
+<script>
+    function getMovimientos(anio) {
+        //const mesSeleccionado = $('#mes').val(); // Tomar el mes seleccionado
+        $.get(`/api/movimientos/movimientosvirtualesanuales?anio=${anio}`, function (data) {
+            $('#listaconfirmados').empty();
+            let totalMontoreal = 0;
+            let totalVirtual = 0;
+            if (data.confirmados.length === 0) {
+                $('#listaconfirmados').append('<p>No hay movimientos para esta categoría.</p>');
+            } else {
+                let table = `
+                                    <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Mes</th>
+                                            <th>Ingresos</th>
+                                            <th>Egresos</th>
+                                            <th>Saldo</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                            `;
+                data.confirmados.forEach(function (movimiento) {
+                    totalMontoreal += parseFloat(movimiento.saldo_proyectado);
+                    table += `
+                                    <tr>
+                                        <td>${movimiento.mes}</td>
+                                        <td>${movimiento.ingresos_proyectados}</td>
+                                        <td>${movimiento.egresos_proyectados}</td>
+                                        <td>${movimiento.saldo_proyectado}</td>
+                                    </tr>
+                                `;
+                });
+                table += '</tbody></table>';
+                $('#listaconfirmados').append(table);
+            }
+            $('#listavirtuales').empty();
+            if (data.virtuales.length === 0) {
+                $('#listavirtuales').append('<p>No hay movimientos para esta categoría.</p>');
+            } else {
+                let table = `
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Mes</th>
+                                                <th>Ingresos</th>
+                                                <th>Egresos</th>
+                                                <th>Saldo</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                `;
+                data.virtuales.forEach(function (movimiento) {
+                    totalVirtual += parseFloat(movimiento.saldo_proyectado);
+                    table += `
+                                        <tr>
+                                            <td>${movimiento.mes}</td>
+                                            <td>${movimiento.ingresos_proyectados}</td>
+                                            <td>${movimiento.egresos_proyectados}</td>
+                                            <td>${movimiento.saldo_proyectado}</td>
+                                        </tr>
+                                    `;
+                });
+                table += '</tbody></table>';
+                $('#listavirtuales').append(table);
+            }
+            // $("#total").text(totalMontoreal.toFixed(2));
+            // $("#total").text(totalVirtual.toFixed(2));
+        });
+    }
+    //function llenarSelectAnios() {
+    //    const anio_inicial = new Date().getFullYear();
+    //    const inicio = anio_inicial - 10;
+    //    const fin = anio_inicial + 20;
+    //    const select = document.getElementById("anio");
+
+    //    if (!select) {
+    //        console.error("No se encontró el elemento <select> con id='anio'");
+    //        return;
+    //    }
+
+    //    // Limpiar opciones previas (por si se ejecuta varias veces)
+    //    select.innerHTML = "";
+
+    //    for (let anio_actual = inicio; anio_actual <= fin; anio_actual++) {
+    //        let option = document.createElement("option");
+    //        option.value = anio_actual;
+    //        option.textContent = `Año ${anio_actual}`;
+    //        select.appendChild(option);
+    //    }
+    //}
+    //function obtenerAniooActual() {
+    //    return new Date().getFullYear();
+    //}
+    //$(document).ready(function(){
+    //    llenarSelectAnios();
+    //    $('#anio').val(obtenerAniooActual());
+    //    getMovimientos($('#anio').val());
+    //    $('#anio').focus();
+
+    //    $('#anio').change(function () {
+    //        getMovimientos($('#anio').val());
+    //    });
+        
+    //});
+
+    activarSwipe(anioBox,
+        () => { // ↑
+            anioActual++;
+            anioBox.textContent = anioActual;
+            getMovimientos(anioActual);
+        },
+        () => { // ↓
+            anioActual--;
+            anioBox.textContent = anioActual;
+            getMovimientos(anioActual);
+        }
+    );
+    getMovimientos(anioActual);
+</script>

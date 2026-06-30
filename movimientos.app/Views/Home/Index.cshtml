@@ -1,0 +1,282 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .categoria-card {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            cursor: pointer;
+        }
+        .categoria-card:hover {
+            transform: translateY(-3px);
+            transition: 0.2s;
+        }
+    </style>
+</head>
+<body>
+    <!--<div class="container mt-4">
+        <div class="row">
+            <div class="col-sm-5"><h1>Gestión de Categorías</h1></div>
+            <div class="col-sm-2"></div>
+            <div class="col-sm-2">
+                <button type="button" class="btn btn-sm btn-light" id="btnAtras">Atras</button>
+            </div>
+            <div class="col-sm-3">
+                <button class="btn btn-primary btn-sm" id="addCategoryBtn" data-bs-toggle="modal" data-bs-target="#categoriaModal">Agregar Categoría</button>
+            </div>
+        </div>-->
+    <!-- Modal de formulario para agregar/editar categoría -->
+    <!--<div class="modal fade" id="categoriaModal" tabindex="-1" aria-labelledby="categoriaModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="categoriaModalLabel">Agregar Categoría</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="categoriaForm">
+                        <input type="hidden" id="categoriaId" />
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombre" required />
+                        </div>
+                        <button type="submit" class="btn btn-success" id="submitBtn">Agregar Categoría</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>-->
+    <!-- Modal de confirmación para eliminar categoría -->
+    <!--<div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Estás seguro de que deseas eliminar esta categoría?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row" id="categoriaList">-->
+    <!-- Lista de categorías se mostrará aquí -->
+    <!--</div>
+    </div>-->
+    <div class="container mt-4">
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="mb-1">Gestión de Categorías</h3>
+                <small class="text-muted">
+                    Administra tus categorías y subcategorías de movimientos
+                </small>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-outline-secondary btn-sm" id="btnAtras">
+                    ← Volver
+                </button>
+
+                <button class="btn btn-primary btn-sm"
+                        id="addCategoryBtn"
+                        data-bs-toggle="modal"
+                        data-bs-target="#categoriaModal">
+                    + Agregar Categoría
+                </button>
+            </div>
+        </div>
+
+        <!-- Lista de categorías -->
+        <div class="row g-3" id="categoriaList">
+            <!-- Categorías renderizadas por JS -->
+        </div>
+
+    </div>
+    <div class="modal fade" id="categoriaModal" tabindex="-1" aria-labelledby="categoriaModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="categoriaModalLabel">Agregar Categoría</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="categoriaForm">
+                        <input type="hidden" id="categoriaId" />
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombre" required />
+                        </div>
+                        <button type="submit" class="btn btn-success" id="submitBtn">Agregar Categoría</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Estás seguro de que deseas eliminar esta categoría?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function () {
+            // Obtener todas las categorías
+            function getCategorias() {
+                $.get("/api/categoria", function (data) {
+                    $('#categoriaList').empty(); // Limpiar lista antes de renderizar
+                    data.forEach(function (categoria) {
+                        //$('#categoriaList').append(`
+                        //                <div class="col-md-4 mb-4">
+                        //                    <div class="card" style="cursor: pointer;">
+                        //                            <div class="card-header"><h5 class="card-title" data-id="${categoria.id}" data-name="${categoria.nombre}" >${categoria.nombre}</h5></div>
+                        //                        <div class="card-body">
+                        //                            <div class="d-flex justify-content-between">
+                        //                                <button class="btn btn-warning btn-sm editBtn" data-id="${categoria.id}" data-bs-toggle="modal" data-bs-target="#categoriaModal">Editar</button>
+                        //                                <button class="btn btn-danger btn-sm deleteBtn" data-id="${categoria.id}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">Eliminar</button>
+                        //                            </div>
+                        //                        </div>
+                        //                        <div class="card-footer"></div>
+                        //                    </div>
+                        //                </div>
+                        //            `);
+                        $('#categoriaList').append(`
+                        <div class="col-md-4 mb-3">
+                            <div class="card h-100 shadow-sm categoria-card"
+                                 style="cursor:pointer">
+                                <div class="card-body" data-id="${categoria.id}" data-name="${categoria.nombre}">
+                                    <h5 class="card-title mb-1">
+                                        ${categoria.nombre}
+                                    </h5>
+
+                                    <small class="text-muted">
+                                        Ver movimientos →
+                                    </small>
+                                </div>
+
+                                <div class="card-footer bg-white border-0 d-flex justify-content-end gap-2">
+                                    <button class="btn btn-outline-warning btn-sm editBtn"
+                                            data-id="${categoria.id}"
+                                            data-name="${categoria.nombre}"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#categoriaModal"
+                                            >
+                                        ✏️
+                                    </button>
+
+                                    <button class="btn btn-outline-danger btn-sm deleteBtn"
+                                            data-id="${categoria.id}"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#confirmDeleteModal"
+                                            >
+                                        🗑️
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                    });
+                });
+            }
+
+            // Llamar a la función para cargar categorías cuando se carga la página
+            getCategorias();
+
+            // Crear o actualizar una categoría
+            $('#categoriaForm').submit(function (e) {
+                e.preventDefault();
+                const id = $('#categoriaId').val();
+                const nombre = $('#nombre').val();
+
+                const url = id ? `/api/categoria/${id}` : '/api/categoria'; // Si tiene id, es actualizar
+                const method = id ? 'PUT' : 'POST'; // Si tiene id, usar PUT
+
+                $.ajax({
+                    url: url,
+                    method: method,
+                    data: JSON.stringify({ nombre: nombre }),
+                    contentType: 'application/json',
+                    success: function () {
+                        // Limpiar formulario y recargar categorías
+                        $('#categoriaId').val('');
+                        $('#nombre').val('');
+                        $('#submitBtn').text('Agregar Categoría');
+                        $('#categoriaModal').modal('hide');
+                        getCategorias();
+                    }
+                });
+            });
+
+            // Editar categoría
+            $(document).on('click', '.editBtn', function () {
+                const id = $(this).data('id');
+                $('#categoriaModalLabel').text('Editar Categoría');
+                $('#submitBtn').text('Guardar Cambios');
+                $.ajax({
+                    url: `/api/categoria/GetCategoriaId?categoria=${id}`,
+                    method: 'GET',
+                    success: function (data) {
+                        $('#categoriaId').val(data.id);
+                        $('#nombre').val(data.nombre);
+                        $('#submitBtn').text('Actualizar Categoría');
+                    }
+                });
+            });
+
+            // Mostrar modal de confirmación para eliminar categoría
+            $(document).on('click', '.deleteBtn', function () {
+                const id = $(this).data('id');
+                $('#confirmDeleteBtn').data('id', id); // Guardar el ID para usarlo al confirmar la eliminación
+            });
+
+            $('#addCategoryBtn').on('click', function () {
+                $('#categoriaModalLabel').text('Agregar Categoría');
+                $('#submitBtn').text('Agregar Categoría');
+                $('#categoriaForm')[0].reset();
+            });
+            // Confirmar eliminación de categoría
+            $('#confirmDeleteBtn').click(function () {
+                const id = $(this).data('id');
+                $.ajax({
+                    url: `/api/categoria/${id}`,
+                    method: 'DELETE',
+                    success: function () {
+                        $('#confirmDeleteModal').modal('hide');
+                        getCategorias();
+                    }
+                });
+            });
+
+            // Redirigir a la página de movimientos al hacer clic en una categoría
+            $(document).on('click', '.card-body', function () {
+                let categoriaId = $(this).data('id');
+                let categoriaName = $(this).data('name');
+                window.location.href = `/Home/Movimientos?id=${categoriaId}&catname=${categoriaName}`;
+            });
+
+            $('#btnAtras').click(function () {
+                location.href = "/";
+            });
+        });
+    </script>
+</body>
+</html>

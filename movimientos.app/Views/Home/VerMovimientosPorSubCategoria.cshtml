@@ -1,0 +1,171 @@
+﻿<div class="container">
+    <h3>
+        Debitos por metodo de pago
+    </h3>
+    <div class="row mb-4 text-center">
+
+        <div class="col-6">
+            <label class="form-label fw-semibold">Mes</label>
+            <div id="mesControl" class="swipe-box">ENERO</div>
+        </div>
+
+        <div class="col-6">
+            <label class="form-label fw-semibold">Año</label>
+            <div id="anioControl" class="swipe-box">2026</div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-sm-3">
+            <label for="id_categoria" class="form-label">Categoria</label>
+            <select class="form-control" id="id_categoria">
+            </select>
+        </div>
+        <div class="col-sm-3">
+            <label for="id_categoria" class="form-label">Sub-Categoria</label>
+            <select class="form-control" id="id_subcategoria">
+            </select>
+        </div>
+        <div class="col-sm-1">
+            Total Movimientos: <strong id="total"></strong>
+        </div>
+    </div>
+    <div id="movimientosList" class="table-responsive">
+    </div>
+</div>
+<script src="~/js/swipeDiv.js"></script>
+<script>
+    function cargarCategorias() {
+        $.get('/api/categoria', function (categoria) {
+            const select = $('#id_categoria');
+            select.empty().append('<option value="">Seleccione una categoria</option>');
+
+            categoria.forEach(metodo => {
+                select.append(`<option value="${metodo.id}">${metodo.nombre}</option>`);
+            });
+        }).fail(function (error) {
+            console.error('Error al obtener las categorias:', error);
+        });
+    }
+    function cargarSubCategorias(id_padre) {
+        $.get('/api/categoria/getsubcategoriasbyidpadre?id_padre=' + id_padre, function (subcategorias) {
+            const select = $('#id_subcategoria');
+            select.empty().append('<option value="">Seleccione una sub-categoria</option>');
+
+            subcategorias.forEach(metodo => {
+                select.append(`<option value="${metodo.id}">${metodo.nombre}</option>`);
+            });
+        }).fail(function (error) {
+            console.error('Error al obtener las sub-categorias:', error);
+        });
+    }
+    document.getElementById('id_categoria').addEventListener('change', function () {
+        // 1. Capturamos el ID seleccionado
+        const categoriaId = this.value;
+
+        // 2. Obtenemos el selector de subcategorías para manipularlo
+        const selectSub = document.getElementById('id_subcategoria');
+
+        if (categoriaId) {
+            // 3. Si hay un ID, llamamos a tu función de llenado pasándole el ID
+            // Supongamos que tu función se llama 'llenarSubCategorias(id)'
+            cargarSubCategorias(categoriaId);
+        }
+    });
+    function getMovimientos(anio, mes, idcategoria, idsubcategoria) {
+        //const mesSeleccionado = $('#mes').val(); // Tomar el mes seleccionado
+        let params = {
+            mes: mes,
+            anio: anio,
+            id_categoria: idcategoria
+        };
+
+        // SOLO agregar si existe
+        if (idsubcategoria !== null && idsubcategoria !== undefined && idsubcategoria !== '') {
+            params.id_subcategoria = idsubcategoria;
+        }
+        $.get(`/api/movimientos/obtenerMovimientosPorSubCategoria`, params, function (data) {
+            $('#movimientosList').empty();
+            let totalMonto = 0;
+            if (data.length === 0) {
+                $('#movimientosList').append('<p>No hay movimientos para esta categoría.</p>');
+            } else {
+                let table = `
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Monto</th>
+                                        <th>Cantidad</th>
+                                        <th>Descripción</th>
+                                        <th>Fecha</th>
+                                        <th>Tipo</th>
+                                        <th>Categoria</th>
+                                        <th>SUb-Categoria</th>
+                                        <th>Metodo de pago</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+                data.forEach(function (movimiento) {
+                    totalMonto += parseFloat(movimiento.monto);
+                    table += `
+                                <tr>
+                                    <td>${movimiento.monto}</td>
+                                    <td>${movimiento.cantidad}</td>
+                                    <td>${movimiento.descripcion}</td>
+                                    <td>${movimiento.fecha.split("T")[0]}</td>
+                                    <td>${getTipo(movimiento.tipo)}</td>
+                                    <td>${movimiento.categoria.nombre}</td>
+                                    <td>${movimiento.subcategoria?.nombre}</td>
+                                    <td>${movimiento.metodopago?.metodo || 'N/A'}</td>
+                                </tr>
+                            `;
+                });
+                table += '</tbody></table>';
+                $('#movimientosList').append(table);
+            }
+            $("#total").text(totalMonto.toFixed(2));
+        });
+    }
+    function getTipo(tipo) {
+        switch (tipo) {
+            case 0: return 'Egreso';
+                break;
+            case 1: return 'Ingreso';
+                break;
+            case 2: return 'Egreso Virtual';
+                break;
+        }
+    }
+    $('#id_categoria').change(function () {
+        getMovimientos(anioActual, mesIndex + 1, this.value, $('#id_subcategoria').val());
+    });
+    $('#id_subcategoria').change(function () {
+        getMovimientos(anioActual, mesIndex + 1, $('#id_categoria').val(), this.value);
+    });
+    cargarCategorias();
+    activarSwipe(mesBox,
+        () => { // ↑
+            mesIndex = (mesIndex + 1) % 12;
+            mesBox.textContent = meses[mesIndex];
+            getMovimientos(anioActual, mesIndex + 1, $('#id_categoria').val(), $('#id_subcategoria').val());
+        },
+        () => { // ↓
+            mesIndex = (mesIndex - 1 + 12) % 12;
+            mesBox.textContent = meses[mesIndex];
+            getMovimientos(anioActual, mesIndex + 1, $('#id_categoria').val(), $('#id_subcategoria').val());
+        }
+    );
+    activarSwipe(anioBox,
+        () => { // ↑
+            anioActual++;
+            anioBox.textContent = anioActual;
+            getMovimientos(anioActual, mesIndex + 1, $('#id_categoria').val(), $('#id_subcategoria').val());
+        },
+        () => { // ↓
+            anioActual--;
+            anioBox.textContent = anioActual;
+            getMovimientos(anioActual, mesIndex + 1, $('#id_categoria').val(), $('#id_subcategoria').val());
+        }
+    );
+   
+</script>

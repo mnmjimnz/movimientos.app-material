@@ -1,0 +1,89 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - movimientos.app</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/movimientos.app.styles.css" asp-append-version="true" />
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            var mesHumanoLoad = new Date().getMonth() + 1;
+            //$("#mes").val(mesHumanoLoad);
+        });
+    </script>
+    <style>
+        .swipe-box {
+            border: 3px solid #000;
+            border-radius: 8px;
+            padding: 18px;
+            font-size: 20px;
+            font-weight: bold;
+            user-select: none;
+            touch-action: none;
+            background: #fff;
+            cursor: ns-resize;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Totales">Inicio</a>
+                @*<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>*@
+
+                @*   <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1">
+                    <li class="nav-item">
+                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                    </li>
+                    <li class="nav-item">
+                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                    </li>
+                    </ul>
+                    </div> *@
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2025 - movimientos.app - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @*@await RenderSectionAsync("Scripts", required: false)*@
+    <script>
+        //function cargarAnios() {
+        //    let selectAnio = document.getElementById("anio");
+        //    let anioActual = new Date().getFullYear();
+
+        //    for (let anio = anioActual - 10; anio <= anioActual + 10; anio++) {
+        //        let option = document.createElement("option");
+        //        option.value = anio;
+        //        option.textContent = anio;
+
+        //        // Opcional: seleccionar el año actual por defecto
+        //        if (anio === anioActual) {
+        //            option.selected = true;
+        //        }
+        //        selectAnio.appendChild(option);
+        //    }
+        //}
+        ///////////////////funciones para el scroll de mes y año/////////////////////////////
+
+    </script>
+</body>
+</html>

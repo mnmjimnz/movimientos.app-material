@@ -1,0 +1,31 @@
+﻿.btn-group-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.btn-group-wrap.btn {
+    margin: -1px 0 0 -1px;
+    white-space: nowrap;
+}
+
+/* 📱 MÓVIL: botones bajan */
+@media(max-width: 768px) {
+    .btn-group-wrap.btn {
+        flex: 1 0 50%; /* 2 por fila */
+    }
+}
+
+/* 🖥️ ESCRITORIO: se extienden hacia la derecha */
+@media(min-width: 769px) {
+    .btn-group-wrap.btn {
+        flex: 1 0 auto; /* ancho según contenido */
+    }
+}
+
+/*@media (min-width: 769px) {
+    .btn-group-wrap .btn {
+        flex: 1 1 0;
+    }
+}*/
+

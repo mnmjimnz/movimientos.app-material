@@ -1,0 +1,174 @@
+﻿<div class="container">
+    <h3>
+        Total montos virtuales por mes
+    </h3>
+    <div class="row">
+        <div class="col-sm-8"></div>
+        <div class="col-sm-2">
+                <button type="button" class="btn btn-sm btn-light" id="btnAtras">Atras</button>
+            </div>
+            <div class="col-sm-2">
+                <button class="btn btn-primary btn-sm" id="addMovimientoBtn" data-bs-toggle="modal" data-bs-target="#metodoModal" onclick="limpiarFormulario()">Agregar Movimiento</button>
+            </div>
+    </div>
+    
+    <div id="metodosList">
+    </div>
+    <div class="d-flex justify-content-between"><button id="previousPage" class="btn btn-primary" onclick="changePage(-1)">Anterior</button><button id="nextPage" class="btn btn-primary" onclick="changePage(1)">Siguiente</button></div>
+    <div class="modal fade" id="metodoModal" tabindex="-1" aria-labelledby="metodoModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="metodoModalLabel">Agregar Metodo de Pago</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="metodoForm">
+                            <input type="hidden" id="metodoId" />
+                            <div class="mb-3">
+                                <label for="metodo" class="form-label">Metodo</label>
+                                <input type="text" class="form-control" id="metodo" required />
+                            </div>
+                            <button type="submit" class="btn btn-success" id="submitBtn">Guardar Movimiento</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+         <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmDeleteModalLabel">Confirmar Eliminación</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        ¿Estás seguro de que deseas eliminar este movimiento?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+</div>
+<script>
+    var PageSize = 5;
+    var PageNumber = 1;
+    function changePage(direction) {
+        PageNumber += direction;
+        getMovimientos();
+    }
+    function getMovimientos() {
+        //const mesSeleccionado = $('#mes').val(); // Tomar el mes seleccionado
+        $.get(`/api/metodospagos`, function (data) {
+            $('#metodosList').empty();
+            let totalMonto = 0;
+            if (data.length === 0) {
+                $('#metodosList').append('<p>No hay movimientos para esta categoría.</p>');
+            } else {
+                let table = `
+                                    <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Metodo Pago</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                            `;
+                data.forEach(function (movimiento) {
+                    table += `
+                                    <tr>
+                                        <td>${movimiento.metodo}</td>
+                                        <td>
+                                        <button class="btn btn-warning btn-sm editBtn" data-id="${movimiento.id}" data-bs-toggle="modal" data-bs-target="#metodoModal">Editar</button>
+                                        <button class="btn btn-danger btn-sm deleteBtn" data-id="${movimiento.id}" data-bs-toggle="modal" data-bs-target="#confirmDeleteModal">Eliminar</button>
+                                    </td>
+                                    </tr>
+                                `;
+                });
+                table += '</tbody></table>';
+                $('#metodosList').append(table);
+            }
+            document.getElementById('previousPage').disabled = PageNumber === 1;
+            document.getElementById('nextPage').disabled = data.length < PageSize;
+        });
+    }
+
+    $(document).ready(function() {
+            // Llamar a la función para cargar movimientos cuando se carga la página
+            getMovimientos();
+            // Crear o actualizar un movimiento
+            $('#metodoForm').submit(function(e) {
+                e.preventDefault();
+                const id = $('#metodoId').val();
+                const movimiento = {
+                    id: id ? id : 0,
+                    metodo: $('#metodo').val()
+                };
+
+                const url = id ? `/api/metodospagos` : `/api/metodospagos`; // Siempre la misma URL
+                const method = id ? 'PUT' : 'POST'; // Si tiene id, usar PUT, sino POST
+
+                $.ajax({
+                    url: url,
+                    method: method,
+                    data: JSON.stringify(movimiento),
+                    contentType: 'application/json',
+                    success: function() {
+                        // Limpiar formulario y recargar movimientos
+                        $('#metodoId').val('');
+                        $('#metodo').val('');
+                        $('#submitBtn').text('Agregar Metodo de Pago');
+                        $('#metodoModal').modal('hide');
+                        getMovimientos();
+                    }
+                });
+            });
+
+            // Editar movimiento
+            $(document).on('click', '.editBtn', function() {
+                const id = $(this).data('id');
+                $.ajax({
+                    url: `/api/metodospagos/GetId?metodo=${id}`,
+                    method: 'GET',
+                    success: function(data) {
+                        $('#metodoId').val(data.id);
+                        $('#metodo').val(data.metodo);
+                        $('#submitBtn').text('Actualizar Metodo de Pago');
+                    }
+                });
+            });
+
+            // Mostrar modal de confirmación para eliminar movimiento
+            $(document).on('click', '.deleteBtn', function() {
+                const id = $(this).data('id');
+                $('#confirmDeleteBtn').data('id', id); // Guardar el ID para usarlo al confirmar la eliminación
+            });
+
+            // Confirmar eliminación de movimiento
+            $('#confirmDeleteBtn').click(function() {
+                const id = $(this).data('id');
+                $.ajax({
+                    url: `/api/metodospagos/${id}`,
+                    method: 'DELETE',
+                    success: function() {
+                        $('#confirmDeleteModal').modal('hide');
+                        getMovimientos();
+                    }
+                });
+            });
+
+            // Actualizar los movimientos cada vez que se cambie el mes
+            $('#btnAtras').click(function () {
+                location.href = "/Home/Totales";
+            });
+        });
+        function limpiarFormulario(){
+            $('#metodoId').val('');
+            $('#metodo').val('');
+            $('#submitBtn').text('Guardar Metodo de Pago');
+        }
+</script>

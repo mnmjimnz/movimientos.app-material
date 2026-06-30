@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35327.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "movimientos.app", "movimientos.app\movimientos.app.csproj", "{A9CD2C6F-F7E8-460E-B595-8E7725DE5834}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "movimientos.app.core", "movimientos.app.core\movimientos.app.core.csproj", "{F34039F5-F0D3-4C52-A7F3-022EA37DE48E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A9CD2C6F-F7E8-460E-B595-8E7725DE5834}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9CD2C6F-F7E8-460E-B595-8E7725DE5834}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9CD2C6F-F7E8-460E-B595-8E7725DE5834}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9CD2C6F-F7E8-460E-B595-8E7725DE5834}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F34039F5-F0D3-4C52-A7F3-022EA37DE48E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F34039F5-F0D3-4C52-A7F3-022EA37DE48E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F34039F5-F0D3-4C52-A7F3-022EA37DE48E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F34039F5-F0D3-4C52-A7F3-022EA37DE48E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {43FD3AF8-CA0D-4D2F-BD1B-988AB6C4EB14}
+	EndGlobalSection
+EndGlobal

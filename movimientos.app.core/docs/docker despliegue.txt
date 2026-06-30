@@ -1,0 +1,9 @@
+1____________________________________________________________________
+comando generar el publicado y dolocar la imagen en docker:
+docker build -t finanzasapp .
+
+2____________________________________________________________________
+crear el contenedor para poder correrlo
+
+docker run -d -p 8090:80 --name webapp_finanzas -e ASPNETCORE_URLS="http://+:80" finanzasapp
+
