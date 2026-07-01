@@ -1,4 +1,4 @@
-﻿<link href="~/css/rowbotones.css" rel="stylesheet"/>
+<link href="~/css/rowbotones.css" rel="stylesheet"/>
 <div class="container">
     <h3>
         Debitos por metodo de pago
@@ -20,20 +20,17 @@
             <select class="form-control" id="metodopago">
             </select>
         </div>*@
-    <div class="col-sm-4">
-        <label class="form-label">Tipo</label>
-
-        <div id="metodopago" class="btn-group btn-group-wrap w-100" role="group">
-            <!-- Botones -->
-
+    <div class="row align-items-center mb-4">
+        <div class="col-md-8 mb-3 mb-md-0">
+            <label class="form-label text-muted fw-bold">Tipo de Pago</label>
+            <div id="metodopago" class="d-flex flex-wrap gap-2" role="group">
+                <!-- Botones -->
+            </div>
+            <input type="hidden" id="metodoseleccionado" />
         </div>
-        <input type="hidden" id="metodoseleccionado" />
-    </div>
-
-
-
-        <div class="col-sm-4">
-            Total Movimientos Virtuales: <strong id="total"></strong>
+        <div class="col-md-4 text-md-end">
+            <p class="text-muted mb-0 fw-bold">Total Movimientos Virtuales</p>
+            <h4 class="text-dark fw-bolder mb-0">$<span id="total">0.00</span></h4>
         </div>
     </div>
     <div id="movimientosList" class="table-responsive">
@@ -80,38 +77,31 @@
             $('#movimientosList').empty();
             let totalMonto = 0;
             if (data.length === 0) {
-                $('#movimientosList').append('<p>No hay movimientos para esta categoría.</p>');
+                $('#movimientosList').append('<p class="text-muted mt-3">No hay movimientos para este método de pago.</p>');
             } else {
-                let table = `
-                                <table class="table table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th>Monto</th>
-                                            <th>Cantidad</th>
-                                            <th>Descripción</th>
-                                            <th>Fecha</th>
-                                            <th>Tipo</th>
-                                            <th>Categoria</th>
-                                            <th>Metodo de pago</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                            `;
+                let table = `<div class="card shadow-0 border-0 bg-white mt-3" style="border-radius: var(--sp-radius); overflow: hidden;">`;
                 data.forEach(function (movimiento) {
                     totalMonto += parseFloat(movimiento.monto);
+                    let isIngreso = movimiento.tipo == 1 || movimiento.tipo == 3;
                     table += `
-                                    <tr>
-                                        <td>${movimiento.monto}</td>
-                                        <td>${movimiento.cantidad}</td>
-                                        <td>${movimiento.descripcion}</td>
-                                        <td>${movimiento.fecha.split("T")[0]}</td>
-                                        <td>${getTipo(movimiento.tipo)}</td>
-                                        <td>${movimiento.categoria.nombre}</td>
-                                        <td>${movimiento.metodopago?.metodo || 'N/A'}</td>
-                                    </tr>
-                                `;
+<div class="sp-list-item">
+    <div class="sp-icon-circle ${isIngreso ? 'sp-icon-green' : 'sp-icon-red'}">
+        <i class="fas ${isIngreso ? 'fa-arrow-up' : 'fa-arrow-down'}"></i>
+    </div>
+    <div class="sp-item-info">
+        <p class="sp-item-title">${movimiento.descripcion}</p>
+        <p class="sp-item-subtitle">${movimiento.fecha.split("T")[0]} · ${movimiento.metodopago?.metodo || 'N/A'}</p>
+    </div>
+    <div class="text-end me-3">
+        <p class="sp-item-amount ${isIngreso ? 'text-success' : 'text-danger'}">
+            ${isIngreso ? '+' : '-'}$${movimiento.monto}
+        </p>
+        <small class="text-muted d-block">${movimiento.categoria.nombre}</small>
+    </div>
+</div>
+`;
                 });
-                table += '</tbody></table>';
+                table += '</div>';
                 $('#movimientosList').append(table);
             }
             $("#total").text(totalMonto.toFixed(2));
@@ -129,6 +119,7 @@
         () => { // ↑
             mesIndex = (mesIndex + 1) % 12;
             mesBox.textContent = meses[mesIndex];
+            guardarFechaMemoria();
             if ($("#metodoseleccionado").val() != undefined && $("#metodoseleccionado").val() != null && $("#metodoseleccionado").val() != "") {
                 getMovimientos(mesIndex + 1, $('#metodoseleccionado').val(), anioActual);
             }
@@ -137,6 +128,7 @@
         () => { // ↓
             mesIndex = (mesIndex - 1 + 12) % 12;
             mesBox.textContent = meses[mesIndex];
+            guardarFechaMemoria();
             if ($("#metodoseleccionado").val() != undefined && $("#metodoseleccionado").val() != null && $("#metodoseleccionado").val() != "") {
                 getMovimientos(mesIndex + 1, $('#metodoseleccionado').val(), anioActual);
             }
@@ -147,6 +139,7 @@
         () => { // ↑
             anioActual++;
             anioBox.textContent = anioActual;
+            guardarFechaMemoria();
             if ($("#metodoseleccionado").val() != undefined && $("#metodoseleccionado").val() != null && $("#metodoseleccionado").val() != "") {
                 getMovimientos(mesIndex + 1, $('#metodoseleccionado').val(), anioActual);
             }
@@ -154,6 +147,7 @@
         () => { // ↓
             anioActual--;
             anioBox.textContent = anioActual;
+            guardarFechaMemoria();
             if ($("#metodoseleccionado").val() != undefined && $("#metodoseleccionado").val() != null && $("#metodoseleccionado").val() != "") {
                 getMovimientos(mesIndex + 1, $('#metodoseleccionado').val(), anioActual);
             }
