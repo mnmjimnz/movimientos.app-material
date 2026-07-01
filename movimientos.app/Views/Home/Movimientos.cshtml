@@ -313,7 +313,7 @@
                         $('#submitBtn').text('Agregar Movimiento');
                         let myModal = mdb.Modal.getInstance(document.getElementById('movimientoModal'));
                         if (myModal) myModal.hide();
-                        getMovimientos($('#mes').val(),$("#anio").val());
+                        getMovimientos(mesIndex + 1, anioActual);
                     }
                 });
             });
@@ -353,7 +353,7 @@
                     success: function() {
                         let myModal = mdb.Modal.getInstance(document.getElementById('confirmDeleteModal'));
                         if (myModal) myModal.hide();
-                        getMovimientos($('#mes').val(), $("#anio").val());
+                        getMovimientos(mesIndex + 1, anioActual);
                     }
                 });
             });
