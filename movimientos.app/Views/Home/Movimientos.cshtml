@@ -417,11 +417,13 @@
             () => { // ↑
                 mesIndex = (mesIndex + 1) % 12;
                 mesBox.textContent = meses[mesIndex];
+                guardarFechaMemoria();
                 getMovimientos(mesIndex + 1, anioActual);
             },
             () => { // ↓
                 mesIndex = (mesIndex - 1 + 12) % 12;
                 mesBox.textContent = meses[mesIndex];
+                guardarFechaMemoria();
                 getMovimientos(mesIndex + 1, anioActual);
             }
         );
@@ -430,11 +432,13 @@
             () => { // ↑
                 anioActual++;
                 anioBox.textContent = anioActual;
+                guardarFechaMemoria();
                 getMovimientos(mesIndex + 1, anioActual);
             },
             () => { // ↓
                 anioActual--;
                 anioBox.textContent = anioActual;
+                guardarFechaMemoria();
                 getMovimientos(mesIndex + 1, anioActual);
             }
         );

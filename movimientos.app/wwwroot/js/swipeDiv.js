@@ -1,11 +1,19 @@
-﻿var meses = [
+var meses = [
     "ENERO", "FEBRERO", "MARZO", "ABRIL",
     "MAYO", "JUNIO", "JULIO", "AGOSTO",
     "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"
 ];
 
-let mesIndex = new Date().getMonth();
-let anioActual = new Date().getFullYear();
+let savedMes = localStorage.getItem("sp_mesIndex");
+let savedAnio = localStorage.getItem("sp_anioActual");
+
+let mesIndex = savedMes !== null ? parseInt(savedMes) : new Date().getMonth();
+let anioActual = savedAnio !== null ? parseInt(savedAnio) : new Date().getFullYear();
+
+function guardarFechaMemoria() {
+    localStorage.setItem("sp_mesIndex", mesIndex);
+    localStorage.setItem("sp_anioActual", anioActual);
+}
 
 var mesBox = document.getElementById("mesControl");
 var anioBox = document.getElementById("anioControl");
@@ -61,5 +69,7 @@ $(function () {
         mesBox.textContent = meses[mesIndex];
     }
     
-    anioBox.textContent = anioActual;
+    if (anioBox) {
+        anioBox.textContent = anioActual;
+    }
 });
