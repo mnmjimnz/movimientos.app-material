@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using movimientos.app.core.Core.Dtos;
 using movimientos.app.core.Infrastructure;
 using movimientos.app.core.Infrastructure.Interface;
@@ -46,6 +46,14 @@ namespace movimientos.app.Controllers
         {
             int result = await _movimientoService.AddMovimientoAsync(movimiento);
             return result > 0 ? Ok("Movimiento agregado") : BadRequest("Error al agregar");
+        }
+
+        [HttpPost("sync")]
+        public async Task<IActionResult> SyncMovimientos([FromBody] List<MovimientoDTO> movimientos)
+        {
+            if (movimientos == null || !movimientos.Any()) return Ok("Nada que sincronizar");
+            int result = await _movimientoService.AddMovimientosMasivosAsync(movimientos);
+            return result > 0 ? Ok($"{result} movimientos sincronizados") : BadRequest("Error al sincronizar");
         }
 
         [HttpPut]

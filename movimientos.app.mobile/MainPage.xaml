@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="movimientos.app.mobile.MainPage"
+             Title="Movimientos Offline">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="30,0" Spacing="25">
+            <Label Text="Aplicación Móvil - Modo Offline"
+                   Style="{StaticResource Headline}"
+                   SemanticProperties.HeadingLevel="Level1" />
+
+            <!-- AJUSTES DE SERVIDOR -->
+            <Frame BorderColor="LightGray" Padding="15" CornerRadius="10" HasShadow="True">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Ajustes de Servidor" FontAttributes="Bold" FontSize="18"/>
+                    <Entry x:Name="UrlEntry" Placeholder="https://mi-servidor.com/api/" />
+                    <Button x:Name="SaveUrlBtn" Text="Guardar URL" Clicked="OnSaveUrlClicked" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- SINCRONIZACIÓN -->
+            <Frame BorderColor="LightGray" Padding="15" CornerRadius="10" HasShadow="True">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Sincronización" FontAttributes="Bold" FontSize="18"/>
+                    <Label x:Name="PendingCountLabel" Text="Movimientos pendientes: 0" TextColor="Red"/>
+                    <Button x:Name="SyncBtn" Text="Sincronizar Ahora" Clicked="OnSyncClicked" BackgroundColor="Green" TextColor="White"/>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- FORMULARIO OFFLINE -->
+            <Frame BorderColor="LightGray" Padding="15" CornerRadius="10" HasShadow="True">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="Agregar Movimiento Rápido" FontAttributes="Bold" FontSize="18"/>
+                    
+                    <Entry x:Name="DescEntry" Placeholder="Descripción" />
+                    <Entry x:Name="MontoEntry" Placeholder="Monto" Keyboard="Numeric" />
+                    
+                    <Picker x:Name="TipoPicker" Title="Tipo">
+                        <Picker.Items>
+                            <x:String>Egreso</x:String>
+                            <x:String>Ingreso</x:String>
+                        </Picker.Items>
+                    </Picker>
+                    
+                    <Button x:Name="AddMovimientoBtn" Text="Guardar Offline" Clicked="OnAddMovimientoClicked" />
+                </VerticalStackLayout>
+            </Frame>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

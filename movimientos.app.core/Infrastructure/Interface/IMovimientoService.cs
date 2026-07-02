@@ -1,4 +1,4 @@
-﻿using movimientos.app.core.Core.Dtos;
+using movimientos.app.core.Core.Dtos;
 
 namespace movimientos.app.core.Infrastructure.Interface
 {
@@ -6,6 +6,7 @@ namespace movimientos.app.core.Infrastructure.Interface
     {
         Task<IEnumerable<MovimientoDTO>> GetMovimientosByCategoriaAsync(int idCategoria, int mes, int anio, int PageSize, int PageNumber);
         Task<int> AddMovimientoAsync(MovimientoDTO movimiento);
+        Task<int> AddMovimientosMasivosAsync(List<MovimientoDTO> movimientos);
         Task<int> UpdateMovimientoAsync(MovimientoDTO movimiento);
         Task<int> DeleteMovimientoAsync(int id);
         Task<MovimientoDTO> GetMovimientoById(int id);

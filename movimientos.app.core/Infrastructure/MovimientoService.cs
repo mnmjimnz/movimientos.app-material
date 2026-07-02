@@ -1,4 +1,4 @@
-﻿using movimientos.app.core.Core.Dtos;
+using movimientos.app.core.Core.Dtos;
 using movimientos.app.core.Infrastructure.Interface;
 
 namespace movimientos.app.core.Infrastructure
@@ -33,6 +33,18 @@ namespace movimientos.app.core.Infrastructure
             string sql = @"INSERT INTO Movimientos (monto, cantidad, descripcion, fecha, tipo, id_categoria, id_metodopago, id_subcategoria) 
                            VALUES (@Monto, @Cantidad, @Descripcion, @Fecha, @Tipo, @Id_Categoria, @id_metodopago, @id_subcategoria)";
             return await _repository.InsertAsync(sql, movimiento);
+        }
+
+        public async Task<int> AddMovimientosMasivosAsync(List<MovimientoDTO> movimientos)
+        {
+            int inserted = 0;
+            string sql = @"INSERT INTO Movimientos (monto, cantidad, descripcion, fecha, tipo, id_categoria, id_metodopago, id_subcategoria) 
+                           VALUES (@Monto, @Cantidad, @Descripcion, @Fecha, @Tipo, @Id_Categoria, @id_metodopago, @id_subcategoria)";
+            foreach (var m in movimientos)
+            {
+                inserted += await _repository.InsertAsync(sql, m);
+            }
+            return inserted;
         }
 
         public async Task<int> UpdateMovimientoAsync(MovimientoDTO movimiento)
