@@ -59,7 +59,11 @@ export default function App() {
     }
     setIsSyncing(true);
     try {
-      const baseUrl = url.endsWith('/') ? url : url + '/';
+      let formattedUrl = url.trim();
+      if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
+        formattedUrl = 'http://' + formattedUrl;
+      }
+      const baseUrl = formattedUrl.endsWith('/') ? formattedUrl : formattedUrl + '/';
       const pendingMovs = await getPendingMovimientos();
       
       if (pendingMovs.length > 0) {

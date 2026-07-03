@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "movimientos.app.reactnative",
-    "slug": "movimientos.app.reactnative",
+    "name": "Movimientos App",
+    "slug": "movimientos-app-reactnative",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,6 +10,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.mariojz.movimientosapp",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -19,6 +20,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "66597823-c8e0-42b7-abda-a24909d3a7a5"
+      }
     }
   }
 }
