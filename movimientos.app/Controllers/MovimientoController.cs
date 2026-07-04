@@ -20,6 +20,12 @@ namespace movimientos.app.Controllers
             _metodoPagoService = metodoPagoService;
         }
 
+        [HttpGet("health")]
+        public IActionResult Health()
+        {
+            return Ok("Conectado");
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetMovimientos([FromQuery] int categoria, [FromQuery] int mes, [FromQuery]int anio, int PageSize, int PageNumber)
         {

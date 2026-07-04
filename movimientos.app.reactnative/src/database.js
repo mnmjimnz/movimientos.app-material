@@ -97,7 +97,8 @@ export const saveCategorias = async (categorias) => {
   const db = await getDb();
   await db.runAsync('DELETE FROM Categorias');
   for (const c of categorias) {
-    await db.runAsync('INSERT INTO Categorias (id, nombre, id_padre) VALUES (?, ?, ?)', [c.id || c.Id, c.nombre || c.Nombre, c.id_padre || c.id_padre]);
+    const idPadre = c.id_padre !== undefined ? c.id_padre : (c.Id_padre !== undefined ? c.Id_padre : null);
+    await db.runAsync('INSERT INTO Categorias (id, nombre, id_padre) VALUES (?, ?, ?)', [c.id || c.Id, c.nombre || c.Nombre, idPadre]);
   }
 };
 

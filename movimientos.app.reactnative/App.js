@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TextInput, Button, Alert, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Button, Alert, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initDb, addMovimiento, getPendingCount, getPendingMovimientos, deleteAllPendingMovimientos, getCategorias, getSubcategorias, getMetodosPago, saveCategorias, saveMetodosPago, deleteAllServerMovimientos, getAllMovimientos } from './src/database';
 import { Picker } from '@react-native-picker/picker';
@@ -30,6 +30,7 @@ export default function App() {
   // Sync State
   const [pendingCount, setPendingCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     async function setup() {
@@ -80,6 +81,36 @@ export default function App() {
   const handleSaveUrl = async () => {
     await AsyncStorage.setItem('serverUrl', url);
     Alert.alert("Éxito", "URL guardada exitosamente");
+  };
+
+  const handleTestConnection = async () => {
+    if (!url) {
+      Alert.alert("Error", "Primero debes configurar la URL");
+      return;
+    }
+    try {
+      let formattedUrl = url.trim();
+      if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
+        formattedUrl = 'http://' + formattedUrl;
+      }
+      const baseUrl = formattedUrl.endsWith('/') ? formattedUrl : formattedUrl + '/';
+      
+      const res = await fetch(`${baseUrl}api/movimientos/health`);
+      if (res.ok) {
+        Alert.alert("Conectado", "¡Conexión exitosa con el servidor!");
+      } else {
+        Alert.alert("Error", "El servidor respondió con error");
+      }
+    } catch (error) {
+      Alert.alert("Error de conexión", error.message);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadCatalogs();
+    await refreshData();
+    setRefreshing(false);
   };
 
   const handleAddMovimiento = async () => {
@@ -216,7 +247,12 @@ export default function App() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         
         {tab === 'settings' && (
           <View>
@@ -228,7 +264,10 @@ export default function App() {
                 value={url}
                 onChangeText={setUrl}
               />
-              <Button title="Guardar URL" onPress={handleSaveUrl} />
+              <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+                <Button title="Guardar URL" onPress={handleSaveUrl} />
+                <Button title="Probar Conexión" onPress={handleTestConnection} color="#757575" />
+              </View>
             </View>
 
             <View style={styles.card}>
@@ -270,9 +309,19 @@ export default function App() {
             />
 
             <Text style={styles.label}>Tipo</Text>
-            <View style={{flexDirection: 'row', justifyContent: 'space-around', marginBottom: 15}}>
-              <Button title="Egreso" color={tipo === '0' ? '#e53935' : '#ccc'} onPress={() => setTipo('0')} />
-              <Button title="Ingreso" color={tipo === '1' ? '#4caf50' : '#ccc'} onPress={() => setTipo('1')} />
+            <View style={{flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 15}}>
+              <View style={{width: '48%', marginBottom: 10}}>
+                <Button title="Egreso" color={tipo === '0' ? '#e53935' : '#ccc'} onPress={() => setTipo('0')} />
+              </View>
+              <View style={{width: '48%', marginBottom: 10}}>
+                <Button title="Ingreso" color={tipo === '1' ? '#4caf50' : '#ccc'} onPress={() => setTipo('1')} />
+              </View>
+              <View style={{width: '48%'}}>
+                <Button title="Egreso Virtual" color={tipo === '2' ? '#d32f2f' : '#ccc'} onPress={() => setTipo('2')} />
+              </View>
+              <View style={{width: '48%'}}>
+                <Button title="Ingreso Virtual" color={tipo === '3' ? '#388e3c' : '#ccc'} onPress={() => setTipo('3')} />
+              </View>
             </View>
 
             <Text style={styles.label}>Fecha</Text>
