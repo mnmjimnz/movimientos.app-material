@@ -17,6 +17,7 @@ namespace movimientos.app.core.Infrastructure.Interface
         Task<decimal> GetSaldoParcialAsync(int mes, int anio);
         Task<decimal> GetTotalEgresosParcialesAsync(int mes, int anio);
         Task<IEnumerable<MovimientoDTO>> GetMovimientosVituales(int mes, int anio, int PageSize, int PageNumber);
+        Task<IEnumerable<MovimientoDTO>> GetAllMovimientosAsync(int mes, int anio);
         Task<IEnumerable<DataAnualDto>> ObtenerMovimientosAnualesReales(int anio);
         Task<IEnumerable<DataAnualDto>> ObtenerMovimientosAnualesVirtuales(int anio);
         Task<IEnumerable<MovimientoDTO>> GetAllEgresosAsync(int mes, int anio);

@@ -130,6 +130,18 @@ namespace movimientos.app.Controllers
             }
             return Ok(m);
         }
+        [HttpGet("todoslosmovimientos")]
+        public async Task<IActionResult> GetAllMovimientos([FromQuery] int mes, [FromQuery] int anio)
+        {
+            var m = await _movimientoService.GetAllMovimientosAsync(mes, anio);
+            foreach (var item in m)
+            {
+                item.metodopago = await _metodoPagoService.GetById(item.id_metodopago);
+                item.categoria = await _categoriaService.GetCategoriaByIdAsync(item.Id_Categoria);
+                item.subcategoria = item?.Id_subcategoria != null ? await _categoriaService.GetCategoriaByIdAsync((int)item?.Id_subcategoria) : new CategoriaDTO();
+            }
+            return Ok(m);
+        }
         [HttpGet("egresoportipopago")]
         public async Task<IActionResult> GetAllEgresosPorTipoPagoYMes([FromQuery] int mes, [FromQuery] int tipopago, [FromQuery]int anio)
         {

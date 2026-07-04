@@ -159,6 +159,13 @@ ORDER BY mes;
             var parametros = new { Mes = mes, Anio = anio };
             return await _repository.GetAllAsync(sql, parametros);
         }
+
+        public async Task<IEnumerable<MovimientoDTO>> GetAllMovimientosAsync(int mes, int anio)
+        {
+            string sql = "SELECT * FROM Movimientos WHERE MONTH(fecha) = @Mes AND YEAR(fecha) = @Anio";
+            var parametros = new { Mes = mes, Anio = anio };
+            return await _repository.GetAllAsync(sql, parametros);
+        }
         public async Task<IEnumerable<MovimientoDTO>> GetAllEgresosPorTipoPagoAsync(int mes, int id_metodopago, int anio)
         {
             string sql = "SELECT * FROM Movimientos WHERE tipo = 0 AND MONTH(fecha) = @Mes AND id_metodopago = @idmetodopago AND YEAR(fecha) = @Anio";

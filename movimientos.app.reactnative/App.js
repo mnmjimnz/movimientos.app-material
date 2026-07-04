@@ -1,13 +1,33 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TextInput, Button, Alert, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Button, Alert, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { initDb, addMovimiento, getPendingCount, getPendingMovimientos, deleteAllPendingMovimientos } from './src/database';
+import { initDb, addMovimiento, getPendingCount, getPendingMovimientos, deleteAllPendingMovimientos, getCategorias, getSubcategorias, getMetodosPago, saveCategorias, saveMetodosPago, deleteAllServerMovimientos, getAllMovimientos } from './src/database';
+import { Picker } from '@react-native-picker/picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function App() {
+  const [tab, setTab] = useState('form'); // form, list, settings
   const [url, setUrl] = useState('');
+  
+  // Form State
   const [desc, setDesc] = useState('');
   const [monto, setMonto] = useState('');
   const [tipo, setTipo] = useState('0'); // 0 Egreso, 1 Ingreso
+  const [fecha, setFecha] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [idCategoria, setIdCategoria] = useState('');
+  const [idSubcategoria, setIdSubcategoria] = useState('');
+  const [idMetodopago, setIdMetodopago] = useState('');
+
+  // Catalogs
+  const [categorias, setCategorias] = useState([]);
+  const [subcategorias, setSubcategorias] = useState([]);
+  const [metodos, setMetodos] = useState([]);
+
+  // List State
+  const [movimientos, setMovimientos] = useState([]);
+  
+  // Sync State
   const [pendingCount, setPendingCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
 
@@ -16,14 +36,45 @@ export default function App() {
       await initDb();
       const savedUrl = await AsyncStorage.getItem('serverUrl');
       if (savedUrl) setUrl(savedUrl);
-      refreshCount();
+      await loadCatalogs();
+      await refreshData();
     }
     setup();
   }, []);
 
-  const refreshCount = async () => {
+  useEffect(() => {
+    if (idCategoria) {
+      loadSubcategorias(idCategoria);
+    } else {
+      setSubcategorias([]);
+    }
+  }, [idCategoria]);
+
+  const loadCatalogs = async () => {
+    const cats = await getCategorias();
+    setCategorias(cats);
+    if (cats.length > 0 && !idCategoria) setIdCategoria(cats[0].id.toString());
+    
+    const mets = await getMetodosPago();
+    setMetodos(mets);
+    if (mets.length > 0 && !idMetodopago) setIdMetodopago(mets[0].id.toString());
+  };
+
+  const loadSubcategorias = async (idPadre) => {
+    const subcats = await getSubcategorias(idPadre);
+    setSubcategorias(subcats);
+    if (subcats.length > 0) {
+      setIdSubcategoria(subcats[0].id.toString());
+    } else {
+      setIdSubcategoria('');
+    }
+  };
+
+  const refreshData = async () => {
     const count = await getPendingCount();
     setPendingCount(count);
+    const movs = await getAllMovimientos();
+    setMovimientos(movs);
   };
 
   const handleSaveUrl = async () => {
@@ -36,20 +87,30 @@ export default function App() {
       Alert.alert("Error", "Debes ingresar descripción y monto");
       return;
     }
+    if (!idCategoria || !idMetodopago) {
+      Alert.alert("Error", "Debes sincronizar al menos una vez para obtener catálogos");
+      return;
+    }
+    
     const mov = {
       monto: parseFloat(monto),
       cantidad: 1,
       descripcion: desc,
-      fecha: new Date().toISOString(),
+      fecha: fecha.toISOString(),
       tipo: parseInt(tipo),
-      id_categoria: 1,
-      id_metodopago: 1
+      id_categoria: parseInt(idCategoria),
+      id_subcategoria: idSubcategoria ? parseInt(idSubcategoria) : null,
+      id_metodopago: parseInt(idMetodopago)
     };
+    
     await addMovimiento(mov);
     Alert.alert("Guardado", "Movimiento guardado offline");
+    
+    // Reset form
     setDesc('');
     setMonto('');
-    refreshCount();
+    setFecha(new Date());
+    refreshData();
   };
 
   const handleSync = async () => {
@@ -64,10 +125,10 @@ export default function App() {
         formattedUrl = 'http://' + formattedUrl;
       }
       const baseUrl = formattedUrl.endsWith('/') ? formattedUrl : formattedUrl + '/';
-      const pendingMovs = await getPendingMovimientos();
       
+      // 1. Enviar pendientes
+      const pendingMovs = await getPendingMovimientos();
       if (pendingMovs.length > 0) {
-        // Map local format to DTO format
         const dtos = pendingMovs.map(m => ({
           Id: m.id,
           Monto: m.monto,
@@ -76,99 +137,267 @@ export default function App() {
           Fecha: m.fecha,
           Tipo: m.tipo,
           Id_Categoria: m.id_categoria,
-          id_metodopago: m.id_metodopago
+          id_metodopago: m.id_metodopago,
+          Id_subcategoria: m.id_subcategoria
         }));
 
         const response = await fetch(`${baseUrl}api/movimientos/sync`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(dtos)
         });
 
         if (response.ok) {
           await deleteAllPendingMovimientos();
-          Alert.alert("Éxito", "Datos sincronizados correctamente");
         } else {
-          Alert.alert("Error", "Falló la sincronización con el servidor");
+          Alert.alert("Error", "Falló el envío de movimientos pendientes");
         }
-      } else {
-        Alert.alert("Info", "No hay nada que sincronizar");
       }
+
+      // 2. Descargar Catálogos
+      const catRes = await fetch(`${baseUrl}api/categoria`);
+      if (catRes.ok) {
+        const cats = await catRes.json();
+        await saveCategorias(cats);
+      }
+
+      const metRes = await fetch(`${baseUrl}api/metodospagos`);
+      if (metRes.ok) {
+        const mets = await metRes.json();
+        await saveMetodosPago(mets);
+      }
+
+      // 3. Descargar Movimientos actuales
+      const now = new Date();
+      const movsRes = await fetch(`${baseUrl}api/movimientos/todoslosmovimientos?mes=${now.getMonth()+1}&anio=${now.getFullYear()}`);
+      if (movsRes.ok) {
+        const movs = await movsRes.json();
+        await deleteAllServerMovimientos();
+        for (const m of movs) {
+          await addMovimiento({
+            id_server: m.id || m.Id,
+            monto: m.monto || m.Monto,
+            cantidad: m.cantidad || m.Cantidad,
+            descripcion: m.descripcion || m.Descripcion,
+            fecha: m.fecha || m.Fecha,
+            tipo: m.tipo || m.Tipo,
+            id_categoria: m.id_Categoria || m.id_categoria || m.Id_Categoria,
+            id_subcategoria: m.id_subcategoria || m.Id_subcategoria,
+            id_metodopago: m.id_metodopago,
+            isSyncPending: 0 // Marca que viene del servidor
+          });
+        }
+      }
+
+      Alert.alert("Éxito", "Sincronización completa");
+      await loadCatalogs();
+      await refreshData();
+      
     } catch (error) {
       Alert.alert("Error de conexión", error.message);
     } finally {
       setIsSyncing(false);
-      refreshCount();
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <View style={styles.container}>
       <Text style={styles.title}>Modo Offline (React Native)</Text>
       
-      <View style={styles.card}>
-        <Text style={styles.subtitle}>Ajustes de Servidor</Text>
-        <TextInput 
-          style={styles.input} 
-          placeholder="https://192.168.1.X:7001/" 
-          value={url}
-          onChangeText={setUrl}
-        />
-        <Button title="Guardar URL" onPress={handleSaveUrl} />
+      <View style={styles.tabContainer}>
+        <TouchableOpacity style={[styles.tab, tab === 'form' && styles.tabActive]} onPress={() => setTab('form')}>
+          <Text style={[styles.tabText, tab === 'form' && styles.tabTextActive]}>Formulario</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.tab, tab === 'list' && styles.tabActive]} onPress={() => setTab('list')}>
+          <Text style={[styles.tabText, tab === 'list' && styles.tabTextActive]}>Historial</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.tab, tab === 'settings' && styles.tabActive]} onPress={() => setTab('settings')}>
+          <Text style={[styles.tabText, tab === 'settings' && styles.tabTextActive]}>Ajustes</Text>
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.subtitle}>Sincronización</Text>
-        <Text style={{color: 'red', marginBottom: 10, fontWeight: 'bold'}}>
-          Movimientos Pendientes: {pendingCount}
-        </Text>
-        <Button 
-          title={isSyncing ? "Sincronizando..." : "Sincronizar Ahora"} 
-          color="green" 
-          onPress={handleSync} 
-          disabled={isSyncing}
-        />
-      </View>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        
+        {tab === 'settings' && (
+          <View>
+            <View style={styles.card}>
+              <Text style={styles.subtitle}>Ajustes de Servidor</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="http://192.168.1.X:8090/" 
+                value={url}
+                onChangeText={setUrl}
+              />
+              <Button title="Guardar URL" onPress={handleSaveUrl} />
+            </View>
 
-      <View style={styles.card}>
-        <Text style={styles.subtitle}>Agregar Movimiento</Text>
-        <TextInput 
-          style={styles.input} 
-          placeholder="Descripción" 
-          value={desc}
-          onChangeText={setDesc}
-        />
-        <TextInput 
-          style={styles.input} 
-          placeholder="Monto" 
-          keyboardType="numeric"
-          value={monto}
-          onChangeText={setMonto}
-        />
-        <View style={{flexDirection: 'row', justifyContent: 'space-around', marginBottom: 15}}>
-          <Button title="Egreso" color={tipo === '0' ? '#2196F3' : '#ccc'} onPress={() => setTipo('0')} />
-          <Button title="Ingreso" color={tipo === '1' ? '#2196F3' : '#ccc'} onPress={() => setTipo('1')} />
-        </View>
-        <Button title="Guardar Offline" onPress={handleAddMovimiento} />
-      </View>
-    </ScrollView>
+            <View style={styles.card}>
+              <Text style={styles.subtitle}>Sincronización Total</Text>
+              <Text style={{color: 'red', marginBottom: 10, fontWeight: 'bold'}}>
+                Movimientos Locales sin subir: {pendingCount}
+              </Text>
+              <Text style={{color: 'gray', marginBottom: 10}}>
+                Esto enviará tus datos locales y descargará los catálogos y el mes actual.
+              </Text>
+              {isSyncing ? (
+                <ActivityIndicator size="large" color="green" />
+              ) : (
+                <Button title="Sincronizar Todo" color="green" onPress={handleSync} />
+              )}
+            </View>
+          </View>
+        )}
+
+        {tab === 'form' && (
+          <View style={styles.card}>
+            <Text style={styles.subtitle}>Nuevo Movimiento</Text>
+            
+            <Text style={styles.label}>Descripción</Text>
+            <TextInput 
+              style={styles.input} 
+              placeholder="Ej. Supermercado" 
+              value={desc}
+              onChangeText={setDesc}
+            />
+
+            <Text style={styles.label}>Monto</Text>
+            <TextInput 
+              style={styles.input} 
+              placeholder="0.00" 
+              keyboardType="numeric"
+              value={monto}
+              onChangeText={setMonto}
+            />
+
+            <Text style={styles.label}>Tipo</Text>
+            <View style={{flexDirection: 'row', justifyContent: 'space-around', marginBottom: 15}}>
+              <Button title="Egreso" color={tipo === '0' ? '#e53935' : '#ccc'} onPress={() => setTipo('0')} />
+              <Button title="Ingreso" color={tipo === '1' ? '#4caf50' : '#ccc'} onPress={() => setTipo('1')} />
+            </View>
+
+            <Text style={styles.label}>Fecha</Text>
+            <TouchableOpacity style={styles.datePickerBtn} onPress={() => setShowDatePicker(true)}>
+              <Text>{fecha.toLocaleDateString()}</Text>
+            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={fecha}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setShowDatePicker(false);
+                  if (selectedDate) setFecha(selectedDate);
+                }}
+              />
+            )}
+
+            <Text style={styles.label}>Categoría</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={idCategoria}
+                onValueChange={(itemValue) => setIdCategoria(itemValue)}
+              >
+                <Picker.Item label="Selecciona..." value="" />
+                {categorias.map(c => <Picker.Item key={c.id} label={c.nombre} value={c.id.toString()} />)}
+              </Picker>
+            </View>
+
+            {subcategorias.length > 0 && (
+              <>
+                <Text style={styles.label}>Subcategoría</Text>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={idSubcategoria}
+                    onValueChange={(itemValue) => setIdSubcategoria(itemValue)}
+                  >
+                    <Picker.Item label="Ninguna" value="" />
+                    {subcategorias.map(s => <Picker.Item key={s.id} label={s.nombre} value={s.id.toString()} />)}
+                  </Picker>
+                </View>
+              </>
+            )}
+
+            <Text style={styles.label}>Método de Pago</Text>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={idMetodopago}
+                onValueChange={(itemValue) => setIdMetodopago(itemValue)}
+              >
+                <Picker.Item label="Selecciona..." value="" />
+                {metodos.map(m => <Picker.Item key={m.id} label={m.metodo} value={m.id.toString()} />)}
+              </Picker>
+            </View>
+
+            <Button title="Guardar Offline" onPress={handleAddMovimiento} color="#1976D2" />
+          </View>
+        )}
+
+        {tab === 'list' && (
+          <View style={styles.card}>
+            <Text style={styles.subtitle}>Mes Actual (Local + Servidor)</Text>
+            {movimientos.length === 0 && <Text style={{fontStyle: 'italic', color: 'gray'}}>No hay movimientos. Sincroniza o agrega uno.</Text>}
+            {movimientos.map(m => {
+              const isPending = m.isSyncPending === 1;
+              const dateStr = new Date(m.fecha).toLocaleDateString();
+              const isIngreso = m.tipo === 1 || m.tipo === 3;
+              return (
+                <View key={m.id} style={[styles.listItem, isPending && styles.listItemPending]}>
+                  <View style={{flex: 1}}>
+                    <Text style={{fontWeight: 'bold'}}>{m.descripcion}</Text>
+                    <Text style={{fontSize: 12, color: 'gray'}}>{dateStr}</Text>
+                    {isPending && <Text style={{fontSize: 10, color: 'red'}}>PENDIENTE DE SUBIR</Text>}
+                  </View>
+                  <Text style={{fontWeight: 'bold', color: isIngreso ? 'green' : 'red'}}>
+                    {isIngreso ? '+' : '-'}${m.monto}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    paddingTop: 50,
+    flex: 1,
+    paddingTop: 40,
     backgroundColor: '#f5f5f5',
-    flexGrow: 1
+  },
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 50
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 20
+    marginBottom: 10
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#e0e0e0',
+    marginHorizontal: 10,
+    borderRadius: 8,
+    overflow: 'hidden'
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center'
+  },
+  tabActive: {
+    backgroundColor: '#1976D2'
+  },
+  tabText: {
+    fontWeight: 'bold',
+    color: '#555'
+  },
+  tabTextActive: {
+    color: 'white'
   },
   card: {
     backgroundColor: 'white',
@@ -184,13 +413,49 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10
+    marginBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingBottom: 5
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    color: '#333'
   },
   input: {
     borderWidth: 1,
     borderColor: '#ddd',
     padding: 10,
     borderRadius: 5,
-    marginBottom: 15
+    marginBottom: 15,
+    backgroundColor: '#fafafa'
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    marginBottom: 15,
+    backgroundColor: '#fafafa'
+  },
+  datePickerBtn: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    padding: 12,
+    borderRadius: 5,
+    marginBottom: 15,
+    backgroundColor: '#fafafa',
+    alignItems: 'center'
+  },
+  listItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee'
+  },
+  listItemPending: {
+    backgroundColor: '#ffebee'
   }
 });
