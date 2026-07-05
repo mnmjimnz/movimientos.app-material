@@ -36,6 +36,10 @@ export const initDb = async () => {
       metodo TEXT NOT NULL
     );
   `);
+  
+  // Safe migrations for users who already had the app installed before these columns were added
+  try { await db.runAsync('ALTER TABLE Movimientos ADD COLUMN id_server INTEGER;'); } catch (e) {}
+  try { await db.runAsync('ALTER TABLE Movimientos ADD COLUMN id_subcategoria INTEGER;'); } catch (e) {}
 };
 
 // ----------------- Movimientos -----------------

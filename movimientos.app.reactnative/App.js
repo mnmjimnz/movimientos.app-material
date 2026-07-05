@@ -134,14 +134,18 @@ export default function App() {
       id_metodopago: parseInt(idMetodopago)
     };
     
-    await addMovimiento(mov);
-    Alert.alert("Guardado", "Movimiento guardado offline");
-    
-    // Reset form
-    setDesc('');
-    setMonto('');
-    setFecha(new Date());
-    refreshData();
+    try {
+      await addMovimiento(mov);
+      Alert.alert("Guardado", "Movimiento guardado offline");
+      
+      // Reset form
+      setDesc('');
+      setMonto('');
+      setFecha(new Date());
+      refreshData();
+    } catch (error) {
+      Alert.alert("Error de base de datos", error.message);
+    }
   };
 
   const handleSync = async () => {
