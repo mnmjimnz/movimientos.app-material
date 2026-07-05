@@ -219,15 +219,15 @@ export default function App() {
         await deleteAllServerMovimientos();
         for (const m of movs) {
           await addMovimiento({
-            id_server: m.id || m.Id,
-            monto: m.monto || m.Monto,
-            cantidad: m.cantidad || m.Cantidad,
-            descripcion: m.descripcion || m.Descripcion,
-            fecha: m.fecha || m.Fecha,
-            tipo: m.tipo || m.Tipo,
-            id_categoria: m.id_Categoria || m.id_categoria || m.Id_Categoria,
-            id_subcategoria: m.id_subcategoria || m.Id_subcategoria,
-            id_metodopago: m.id_metodopago,
+            id_server: m.id !== undefined ? m.id : m.Id,
+            monto: m.monto !== undefined ? m.monto : m.Monto,
+            cantidad: m.cantidad !== undefined ? m.cantidad : m.Cantidad,
+            descripcion: m.descripcion !== undefined ? m.descripcion : m.Descripcion,
+            fecha: m.fecha !== undefined ? m.fecha : m.Fecha,
+            tipo: m.tipo !== undefined ? m.tipo : m.Tipo,
+            id_categoria: m.id_categoria !== undefined ? m.id_categoria : (m.id_Categoria !== undefined ? m.id_Categoria : m.Id_Categoria),
+            id_subcategoria: m.id_subcategoria !== undefined ? m.id_subcategoria : m.Id_subcategoria,
+            id_metodopago: m.id_metodopago !== undefined ? m.id_metodopago : m.Id_metodopago,
             isSyncPending: 0 // Marca que viene del servidor
           });
         }
