@@ -227,12 +227,65 @@
                     </div>
                 </div>
             </div>
+        </div>
 
+        <!-- Gráficos Analíticos Adicionales -->
+        <div class="row g-4 mt-2">
+            <!-- Gastos por Categoría -->
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted fw-bold mb-4"><i class="fas fa-tags me-2"></i>Gastos por Categoría</h6>
+                        <div style="position: relative; height:300px; width:100%">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Histórico Anual -->
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted fw-bold mb-4"><i class="fas fa-chart-bar me-2"></i>Histórico Anual (Ingresos vs Egresos)</h6>
+                        <div style="position: relative; height:300px; width:100%">
+                            <canvas id="annualChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Flujo de Caja Diario -->
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted fw-bold mb-4"><i class="fas fa-chart-line me-2"></i>Flujo de Caja Diario</h6>
+                        <div style="position: relative; height:300px; width:100%">
+                            <canvas id="dailyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Gastos por Método de Pago -->
+            <div class="col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                        <h6 class="text-muted fw-bold mb-4"><i class="fas fa-credit-card me-2"></i>Gastos por Método de Pago</h6>
+                        <div style="position: relative; height:300px; width:100%">
+                            <canvas id="paymentChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <script src="~/js/swipeDiv.js"></script>
     <script>
         let financeChart;
+        let categoryChartInst;
+        let annualChartInst;
+        let dailyChartInst;
+        let paymentChartInst;
+
+        const defaultColors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#E7E9ED', '#f93154', '#00b74a', '#39c0ed'];
 
         function updateChart(ingresos, egresos) {
             const ctx = document.getElementById('financeChart').getContext('2d');
@@ -259,6 +312,137 @@
             });
         }
 
+        async function cargarGraficosAdicionales(mes, anio) {
+            try {
+                // 1. Cargar movimientos del mes
+                const movsRes = await fetch(`/api/movimientos/todoslosmovimientos?mes=${mes}&anio=${anio}`);
+                const movs = await movsRes.json();
+                
+                // 2. Cargar histórico anual
+                const anioRes = await fetch(`/api/movimientos/movimientosvirtualesanuales?anio=${anio}`);
+                const anioData = await anioRes.json();
+
+                renderizarGraficosAdicionales(movs, anioData, mes, anio);
+            } catch (error) {
+                console.error("Error cargando gráficos adicionales:", error);
+            }
+        }
+
+        function renderizarGraficosAdicionales(movs, anioData, mes, anio) {
+            if (categoryChartInst) categoryChartInst.destroy();
+            if (annualChartInst) annualChartInst.destroy();
+            if (dailyChartInst) dailyChartInst.destroy();
+            if (paymentChartInst) paymentChartInst.destroy();
+
+            // 1. Gastos por Categoría (tipo 0 y 2)
+            const egresos = movs.filter(m => m.tipo === 0 || m.tipo === 2);
+            const catMap = {};
+            egresos.forEach(m => {
+                const nombre = m.categoria ? m.categoria.nombre : "Sin categoría";
+                catMap[nombre] = (catMap[nombre] || 0) + m.monto;
+            });
+            
+            categoryChartInst = new Chart(document.getElementById('categoryChart'), {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(catMap),
+                    datasets: [{
+                        data: Object.values(catMap),
+                        backgroundColor: defaultColors
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // 2. Histórico Anual (Ingresos vs Egresos)
+            const mesesLabels = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+            const ingresosAnual = new Array(12).fill(0);
+            const egresosAnual = new Array(12).fill(0);
+            
+            if (anioData && anioData.confirmados) {
+                anioData.confirmados.forEach(d => {
+                    if (d.mes) {
+                        const mNum = parseInt(d.mes.split('-')[1], 10);
+                        if (mNum >= 1 && mNum <= 12) {
+                            ingresosAnual[mNum - 1] = d.ingresos_proyectados || 0;
+                            egresosAnual[mNum - 1] = d.egresos_proyectados || 0;
+                        }
+                    }
+                });
+            }
+
+            annualChartInst = new Chart(document.getElementById('annualChart'), {
+                type: 'bar',
+                data: {
+                    labels: mesesLabels,
+                    datasets: [
+                        { label: 'Ingresos', data: ingresosAnual, backgroundColor: '#00b74a' },
+                        { label: 'Egresos', data: egresosAnual, backgroundColor: '#f93154' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // 3. Flujo de Caja Diario
+            const daysInMonth = new Date(anio, mes, 0).getDate();
+            const daysLabels = Array.from({length: daysInMonth}, (_, i) => i + 1);
+            const flujoDiario = new Array(daysInMonth).fill(0);
+            
+            movs.forEach(m => {
+                const dia = new Date(m.fecha).getDate();
+                if(dia >= 1 && dia <= daysInMonth) {
+                    if(m.tipo === 1 || m.tipo === 3) flujoDiario[dia - 1] += m.monto;
+                    else flujoDiario[dia - 1] -= m.monto;
+                }
+            });
+
+            let balanceAcumulado = 0;
+            const balanceData = flujoDiario.map(val => {
+                balanceAcumulado += val;
+                return balanceAcumulado;
+            });
+
+            dailyChartInst = new Chart(document.getElementById('dailyChart'), {
+                type: 'line',
+                data: {
+                    labels: daysLabels,
+                    datasets: [{
+                        label: 'Saldo Acumulado',
+                        data: balanceData,
+                        borderColor: '#39c0ed',
+                        backgroundColor: 'rgba(57, 192, 237, 0.2)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // 4. Gastos por Método de Pago
+            const metMap = {};
+            egresos.forEach(m => {
+                const nombre = m.metodopago ? m.metodopago.metodo : "Desconocido";
+                metMap[nombre] = (metMap[nombre] || 0) + m.monto;
+            });
+
+            paymentChartInst = new Chart(document.getElementById('paymentChart'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(metMap),
+                    datasets: [{
+                        label: 'Egresos',
+                        data: Object.values(metMap),
+                        backgroundColor: '#ffa900'
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    indexAxis: 'y'
+                }
+            });
+        }
+
         // Función para obtener los totales según el mes seleccionado
         function obtenerTotales(mes, anio) {
             $.get(`/api/movimientos/totales?mes=${mes}&anio=${anio}`, function (data) {
@@ -270,8 +454,11 @@
                 $('#saldoActualVirtual').text('$' + data.saldoParcial);
                 $('#totalIngresosVirtuales').text('$' + data.totalIngresoVirtual);
                 
-                // Actualizar Gráfico
+                // Actualizar Gráfico Principal
                 updateChart(data.totalIngresos, data.totalEgresos);
+                
+                // Cargar Gráficos Adicionales
+                cargarGraficosAdicionales(mes, anio);
             }).fail(function () {
                 alert('Ocurrió un error al obtener los totales.');
             });
