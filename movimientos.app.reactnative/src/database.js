@@ -98,7 +98,9 @@ export const saveCategorias = async (categorias) => {
   await db.runAsync('DELETE FROM Categorias');
   for (const c of categorias) {
     const idPadre = c.id_padre !== undefined ? c.id_padre : (c.Id_padre !== undefined ? c.Id_padre : null);
-    await db.runAsync('INSERT INTO Categorias (id, nombre, id_padre) VALUES (?, ?, ?)', [c.id || c.Id, c.nombre || c.Nombre, idPadre]);
+    const catId = c.id !== undefined ? c.id : c.Id;
+    const catNombre = c.nombre !== undefined ? c.nombre : c.Nombre;
+    await db.runAsync('INSERT INTO Categorias (id, nombre, id_padre) VALUES (?, ?, ?)', [catId, catNombre, idPadre]);
   }
 };
 
@@ -106,7 +108,9 @@ export const saveMetodosPago = async (metodos) => {
   const db = await getDb();
   await db.runAsync('DELETE FROM MetodosPago');
   for (const m of metodos) {
-    await db.runAsync('INSERT INTO MetodosPago (id, metodo) VALUES (?, ?)', [m.id || m.Id, m.metodo || m.Metodo || m.Nombre]);
+    const metId = m.id !== undefined ? m.id : m.Id;
+    const metNombre = m.metodo !== undefined ? m.metodo : (m.Metodo !== undefined ? m.Metodo : m.Nombre);
+    await db.runAsync('INSERT INTO MetodosPago (id, metodo) VALUES (?, ?)', [metId, metNombre]);
   }
 };
 

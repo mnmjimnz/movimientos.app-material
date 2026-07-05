@@ -187,9 +187,18 @@ export default function App() {
 
       // 2. Descargar Catálogos
       const catRes = await fetch(`${baseUrl}api/categoria`);
+      const subcatRes = await fetch(`${baseUrl}api/categoria/getsubcategorias`);
+      let allCats = [];
       if (catRes.ok) {
         const cats = await catRes.json();
-        await saveCategorias(cats);
+        allCats = [...allCats, ...cats];
+      }
+      if (subcatRes.ok) {
+        const subcats = await subcatRes.json();
+        allCats = [...allCats, ...subcats];
+      }
+      if (allCats.length > 0) {
+        await saveCategorias(allCats);
       }
 
       const metRes = await fetch(`${baseUrl}api/metodospagos`);
