@@ -397,6 +397,31 @@ export default function App() {
         {tab === 'list' && (
           <View style={styles.card}>
             <Text style={styles.subtitle}>Mes Actual (Local + Servidor)</Text>
+
+            <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#eee'}}>
+              <View>
+                <Text style={{color: 'gray', fontSize: 12}}>Total Ingresos</Text>
+                <Text style={{color: 'green', fontWeight: 'bold', fontSize: 16}}>
+                  ${movimientos.filter(m => m.tipo === 1 || m.tipo === 3).reduce((sum, m) => sum + parseFloat(m.monto), 0).toFixed(2)}
+                </Text>
+              </View>
+              <View>
+                <Text style={{color: 'gray', fontSize: 12}}>Total Egresos</Text>
+                <Text style={{color: 'red', fontWeight: 'bold', fontSize: 16}}>
+                  ${movimientos.filter(m => m.tipo === 0 || m.tipo === 2).reduce((sum, m) => sum + parseFloat(m.monto), 0).toFixed(2)}
+                </Text>
+              </View>
+              <View>
+                <Text style={{color: 'gray', fontSize: 12}}>Balance</Text>
+                <Text style={{color: '#333', fontWeight: 'bold', fontSize: 16}}>
+                  ${(
+                    movimientos.filter(m => m.tipo === 1 || m.tipo === 3).reduce((sum, m) => sum + parseFloat(m.monto), 0) - 
+                    movimientos.filter(m => m.tipo === 0 || m.tipo === 2).reduce((sum, m) => sum + parseFloat(m.monto), 0)
+                  ).toFixed(2)}
+                </Text>
+              </View>
+            </View>
+
             {movimientos.length === 0 && <Text style={{fontStyle: 'italic', color: 'gray'}}>No hay movimientos. Sincroniza o agrega uno.</Text>}
             {movimientos.map(m => {
               const isPending = m.isSyncPending === 1;
