@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TextInput, Button, Alert, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Button, Alert, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initDb, addMovimiento, getPendingCount, getPendingMovimientos, deleteAllPendingMovimientos, getCategorias, getSubcategorias, getMetodosPago, saveCategorias, saveMetodosPago, deleteAllServerMovimientos, getAllMovimientos } from './src/database';
 import { Picker } from '@react-native-picker/picker';
@@ -31,6 +31,10 @@ export default function App() {
   const [pendingCount, setPendingCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Modal State
+  const [selectedMov, setSelectedMov] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     async function setup() {
@@ -428,7 +432,7 @@ export default function App() {
               const dateStr = new Date(m.fecha).toLocaleDateString();
               const isIngreso = m.tipo === 1 || m.tipo === 3;
               return (
-                <View key={m.id} style={[styles.listItem, isPending && styles.listItemPending]}>
+                <TouchableOpacity key={m.id} style={[styles.listItem, isPending && styles.listItemPending]} onPress={() => { setSelectedMov(m); setModalVisible(true); }}>
                   <View style={{flex: 1}}>
                     <Text style={{fontWeight: 'bold'}}>{m.descripcion}</Text>
                     <Text style={{fontSize: 12, color: 'gray'}}>{dateStr}</Text>
@@ -437,13 +441,63 @@ export default function App() {
                   <Text style={{fontWeight: 'bold', color: isIngreso ? 'green' : 'red'}}>
                     {isIngreso ? '+' : '-'}${m.monto}
                   </Text>
-                </View>
+                </TouchableOpacity>
               );
             })}
           </View>
         )}
 
       </ScrollView>
+
+      {selectedMov && (
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalBackground}>
+            <View style={styles.modalContent}>
+              <Text style={styles.subtitle}>Detalles del Movimiento</Text>
+              
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Descripción:</Text>
+                <Text style={styles.detailValue}>{selectedMov.descripcion}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Monto:</Text>
+                <Text style={styles.detailValue}>${selectedMov.monto}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Fecha:</Text>
+                <Text style={styles.detailValue}>{new Date(selectedMov.fecha).toLocaleDateString()} {new Date(selectedMov.fecha).toLocaleTimeString()}</Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Tipo:</Text>
+                <Text style={styles.detailValue}>
+                  {selectedMov.tipo === 1 ? 'Ingreso' : selectedMov.tipo === 3 ? 'Ingreso Virtual' : selectedMov.tipo === 0 ? 'Egreso' : 'Egreso Virtual'}
+                </Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Categoría:</Text>
+                <Text style={styles.detailValue}>
+                  {categorias.find(c => c.id == selectedMov.id_categoria)?.nombre || selectedMov.id_categoria}
+                </Text>
+              </View>
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Método Pago:</Text>
+                <Text style={styles.detailValue}>
+                  {metodos.find(m => m.id == selectedMov.id_metodopago)?.metodo || selectedMov.id_metodopago}
+                </Text>
+              </View>
+              
+              <View style={{marginTop: 15}}>
+                <Button title="Cerrar" onPress={() => setModalVisible(false)} color="#1976D2" />
+              </View>
+            </View>
+          </View>
+        </Modal>
+      )}
     </View>
   );
 }
@@ -544,5 +598,39 @@ const styles = StyleSheet.create({
   },
   listItemPending: {
     backgroundColor: '#ffebee'
+  },
+  modalBackground: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)'
+  },
+  modalContent: {
+    width: '85%',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    marginBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingBottom: 5
+  },
+  detailLabel: {
+    fontWeight: 'bold',
+    flex: 1,
+    color: '#333'
+  },
+  detailValue: {
+    flex: 2,
+    color: '#666',
+    textAlign: 'right'
   }
 });
