@@ -250,7 +250,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Modo Offline (React Native)</Text>
+      <Text style={styles.title}>Registro de movmientos offline</Text>
       
       <View style={styles.tabContainer}>
         <TouchableOpacity style={[styles.tab, tab === 'form' && styles.tabActive]} onPress={() => setTab('form')}>
