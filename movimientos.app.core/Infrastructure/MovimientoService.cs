@@ -17,13 +17,13 @@ namespace movimientos.app.core.Infrastructure
         public async Task<IEnumerable<MovimientoDTO>> GetMovimientosByCategoriaAsync(int idCategoria, int mes, int anio, int PageSize, int PageNumber)
         {
             int Offset = (PageNumber - 1) * PageSize;
-            string sql = @$"SELECT * FROM Movimientos WHERE id_categoria = @idCategoria AND MONTH(fecha) = @mes AND YEAR(fecha) = @Anio ORDER BY id OFFSET {(PageNumber - 1) * PageSize} ROWS 
+            string sql = @$"SELECT * FROM Movimientos WHERE id_categoria = @idCategoria AND MONTH(fecha) = @mes AND YEAR(fecha) = @Anio ORDER BY fecha desc OFFSET {(PageNumber - 1) * PageSize} ROWS 
         FETCH NEXT {PageSize} ROWS ONLY;";
             return await _repository.GetAllAsync(sql, new { idCategoria, mes, anio });
         }
         public async Task<MovimientoDTO> GetMovimientoById(int id)
         {
-            string sql = "SELECT * FROM Movimientos WHERE id = @id";
+            string sql = "SELECT * FROM Movimientos WHERE id = @id order by fecha desc";
             var data = await _repository.GetAllAsync(sql, new { id });
             return data.SingleOrDefault();
         }
@@ -96,7 +96,7 @@ id_subcategoria = @id_subcategoria
         public async Task<IEnumerable<MovimientoDTO>> GetMovimientosVituales(int mes, int anio, int PageSize, int PageNumber)
         {
             int Offset = (PageNumber - 1) * PageSize;
-            string sql = @$"SELECT * FROM Movimientos WHERE tipo = 2 AND MONTH(fecha) = @mes AND YEAR(fecha) = @anio ORDER BY id;";
+            string sql = @$"SELECT * FROM Movimientos WHERE tipo = 2 AND MONTH(fecha) = @mes AND YEAR(fecha) = @anio order by fecha desc;";
             return await _repository.GetAllAsync(sql, new { mes, anio });
         }
         public async Task<decimal> GetTotalIngresosVituales(int mes, int anio)
@@ -155,20 +155,20 @@ ORDER BY mes;
 
         public async Task<IEnumerable<MovimientoDTO>> GetAllEgresosAsync(int mes, int anio)
         {
-            string sql = "SELECT * FROM Movimientos WHERE tipo = 0 AND MONTH(fecha) = @Mes AND YEAR(fecha) = @Anio";
+            string sql = "SELECT * FROM Movimientos WHERE tipo = 0 AND MONTH(fecha) = @Mes AND YEAR(fecha) = @Anio order by fecha desc";
             var parametros = new { Mes = mes, Anio = anio };
             return await _repository.GetAllAsync(sql, parametros);
         }
 
         public async Task<IEnumerable<MovimientoDTO>> GetAllMovimientosAsync(int mes, int anio)
         {
-            string sql = "SELECT * FROM Movimientos WHERE MONTH(fecha) = @Mes AND YEAR(fecha) = @Anio";
+            string sql = "SELECT * FROM Movimientos WHERE MONTH(fecha) = @Mes AND YEAR(fecha) = @Anio order by fecha desc";
             var parametros = new { Mes = mes, Anio = anio };
             return await _repository.GetAllAsync(sql, parametros);
         }
         public async Task<IEnumerable<MovimientoDTO>> GetAllEgresosPorTipoPagoAsync(int mes, int id_metodopago, int anio)
         {
-            string sql = "SELECT * FROM Movimientos WHERE tipo = 0 AND MONTH(fecha) = @Mes AND id_metodopago = @idmetodopago AND YEAR(fecha) = @Anio";
+            string sql = "SELECT * FROM Movimientos WHERE tipo = 0 AND MONTH(fecha) = @Mes AND id_metodopago = @idmetodopago AND YEAR(fecha) = @Anio order by fecha desc";
             var parametros = new { Mes = mes, idmetodopago = id_metodopago, Anio=anio };
             return await _repository.GetAllAsync(sql, parametros);
         }
