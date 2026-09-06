@@ -4,9 +4,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initDb, addMovimiento, getPendingCount, getPendingMovimientos, deleteAllPendingMovimientos, getCategorias, getSubcategorias, getMetodosPago, saveCategorias, saveMetodosPago, deleteAllServerMovimientos, getAllMovimientos } from './src/database';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
-
+import DashboardCharts from './src/components/DashboardCharts';
 export default function App() {
-  const [tab, setTab] = useState('form'); // form, list, settings
+  const [tab, setTab] = useState('charts'); // charts, form, list, settings
   const [url, setUrl] = useState('');
   
   // Form State
@@ -35,6 +35,7 @@ export default function App() {
   // Modal State
   const [selectedMov, setSelectedMov] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [formVisible, setFormVisible] = useState(false);
 
   useEffect(() => {
     async function setup() {
@@ -147,6 +148,7 @@ export default function App() {
       setMonto('');
       setFecha(new Date());
       refreshData();
+      setFormVisible(false);
     } catch (error) {
       Alert.alert("Error de base de datos", error.message);
     }
@@ -253,8 +255,8 @@ export default function App() {
       <Text style={styles.title}>Registro de movmientos offline</Text>
       
       <View style={styles.tabContainer}>
-        <TouchableOpacity style={[styles.tab, tab === 'form' && styles.tabActive]} onPress={() => setTab('form')}>
-          <Text style={[styles.tabText, tab === 'form' && styles.tabTextActive]}>Formulario</Text>
+        <TouchableOpacity style={[styles.tab, tab === 'charts' && styles.tabActive]} onPress={() => setTab('charts')}>
+          <Text style={[styles.tabText, tab === 'charts' && styles.tabTextActive]}>Gráficos</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.tab, tab === 'list' && styles.tabActive]} onPress={() => setTab('list')}>
           <Text style={[styles.tabText, tab === 'list' && styles.tabTextActive]}>Historial</Text>
@@ -270,6 +272,13 @@ export default function App() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        {tab === 'charts' && (
+          <DashboardCharts 
+            movimientos={movimientos} 
+            categorias={categorias} 
+            metodos={metodos} 
+          />
+        )}
         
         {tab === 'settings' && (
           <View>
@@ -304,99 +313,6 @@ export default function App() {
           </View>
         )}
 
-        {tab === 'form' && (
-          <View style={styles.card}>
-            <Text style={styles.subtitle}>Nuevo Movimiento</Text>
-            
-            <Text style={styles.label}>Descripción</Text>
-            <TextInput 
-              style={styles.input} 
-              placeholder="Ej. Supermercado" 
-              value={desc}
-              onChangeText={setDesc}
-            />
-
-            <Text style={styles.label}>Monto</Text>
-            <TextInput 
-              style={styles.input} 
-              placeholder="0.00" 
-              keyboardType="numeric"
-              value={monto}
-              onChangeText={setMonto}
-            />
-
-            <Text style={styles.label}>Tipo</Text>
-            <View style={{flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 15}}>
-              <View style={{width: '48%', marginBottom: 10}}>
-                <Button title="Egreso" color={tipo === '0' ? '#e53935' : '#ccc'} onPress={() => setTipo('0')} />
-              </View>
-              <View style={{width: '48%', marginBottom: 10}}>
-                <Button title="Ingreso" color={tipo === '1' ? '#4caf50' : '#ccc'} onPress={() => setTipo('1')} />
-              </View>
-              <View style={{width: '48%'}}>
-                <Button title="Egreso Virtual" color={tipo === '2' ? '#d32f2f' : '#ccc'} onPress={() => setTipo('2')} />
-              </View>
-              <View style={{width: '48%'}}>
-                <Button title="Ingreso Virtual" color={tipo === '3' ? '#388e3c' : '#ccc'} onPress={() => setTipo('3')} />
-              </View>
-            </View>
-
-            <Text style={styles.label}>Fecha</Text>
-            <TouchableOpacity style={styles.datePickerBtn} onPress={() => setShowDatePicker(true)}>
-              <Text>{fecha.toLocaleDateString()}</Text>
-            </TouchableOpacity>
-            {showDatePicker && (
-              <DateTimePicker
-                value={fecha}
-                mode="date"
-                display="default"
-                onChange={(event, selectedDate) => {
-                  setShowDatePicker(false);
-                  if (selectedDate) setFecha(selectedDate);
-                }}
-              />
-            )}
-
-            <Text style={styles.label}>Categoría</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={idCategoria}
-                onValueChange={(itemValue) => setIdCategoria(itemValue)}
-              >
-                <Picker.Item label="Selecciona..." value="" />
-                {categorias.map(c => <Picker.Item key={c.id} label={c.nombre} value={c.id.toString()} />)}
-              </Picker>
-            </View>
-
-            {subcategorias.length > 0 && (
-              <>
-                <Text style={styles.label}>Subcategoría</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={idSubcategoria}
-                    onValueChange={(itemValue) => setIdSubcategoria(itemValue)}
-                  >
-                    <Picker.Item label="Ninguna" value="" />
-                    {subcategorias.map(s => <Picker.Item key={s.id} label={s.nombre} value={s.id.toString()} />)}
-                  </Picker>
-                </View>
-              </>
-            )}
-
-            <Text style={styles.label}>Método de Pago</Text>
-            <View style={styles.pickerContainer}>
-              <Picker
-                selectedValue={idMetodopago}
-                onValueChange={(itemValue) => setIdMetodopago(itemValue)}
-              >
-                <Picker.Item label="Selecciona..." value="" />
-                {metodos.map(m => <Picker.Item key={m.id} label={m.metodo} value={m.id.toString()} />)}
-              </Picker>
-            </View>
-
-            <Button title="Guardar Offline" onPress={handleAddMovimiento} color="#1976D2" />
-          </View>
-        )}
 
         {tab === 'list' && (
           <View style={styles.card}>
@@ -448,6 +364,120 @@ export default function App() {
         )}
 
       </ScrollView>
+
+      {/* Form Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={formVisible}
+        onRequestClose={() => setFormVisible(false)}
+      >
+        <View style={styles.modalBackground}>
+          <ScrollView contentContainerStyle={{flexGrow: 1, justifyContent: 'center', alignItems: 'center'}} style={{width: '100%'}}>
+            <View style={styles.modalContent}>
+              <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15}}>
+                <Text style={[styles.subtitle, {marginBottom: 0, borderBottomWidth: 0}]}>Nuevo Movimiento</Text>
+                <TouchableOpacity onPress={() => setFormVisible(false)}>
+                  <Text style={{color: '#d32f2f', fontWeight: 'bold', fontSize: 16}}>✕</Text>
+                </TouchableOpacity>
+              </View>
+              
+              <Text style={styles.label}>Descripción</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="Ej. Supermercado" 
+                value={desc}
+                onChangeText={setDesc}
+              />
+
+              <Text style={styles.label}>Monto</Text>
+              <TextInput 
+                style={styles.input} 
+                placeholder="0.00" 
+                keyboardType="numeric"
+                value={monto}
+                onChangeText={setMonto}
+              />
+
+              <Text style={styles.label}>Tipo</Text>
+              <View style={{flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 15}}>
+                <View style={{width: '48%', marginBottom: 10}}>
+                  <Button title="Egreso" color={tipo === '0' ? '#e53935' : '#ccc'} onPress={() => setTipo('0')} />
+                </View>
+                <View style={{width: '48%', marginBottom: 10}}>
+                  <Button title="Ingreso" color={tipo === '1' ? '#4caf50' : '#ccc'} onPress={() => setTipo('1')} />
+                </View>
+                <View style={{width: '48%'}}>
+                  <Button title="Egreso V." color={tipo === '2' ? '#d32f2f' : '#ccc'} onPress={() => setTipo('2')} />
+                </View>
+                <View style={{width: '48%'}}>
+                  <Button title="Ingreso V." color={tipo === '3' ? '#388e3c' : '#ccc'} onPress={() => setTipo('3')} />
+                </View>
+              </View>
+
+              <Text style={styles.label}>Fecha</Text>
+              <TouchableOpacity style={styles.datePickerBtn} onPress={() => setShowDatePicker(true)}>
+                <Text>{fecha.toLocaleDateString()}</Text>
+              </TouchableOpacity>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={fecha}
+                  mode="date"
+                  display="default"
+                  onChange={(event, selectedDate) => {
+                    setShowDatePicker(false);
+                    if (selectedDate) setFecha(selectedDate);
+                  }}
+                />
+              )}
+
+              <Text style={styles.label}>Categoría</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={idCategoria}
+                  onValueChange={(itemValue) => setIdCategoria(itemValue)}
+                >
+                  <Picker.Item label="Selecciona..." value="" />
+                  {categorias.map(c => <Picker.Item key={c.id} label={c.nombre} value={c.id.toString()} />)}
+                </Picker>
+              </View>
+
+              {subcategorias.length > 0 && (
+                <>
+                  <Text style={styles.label}>Subcategoría</Text>
+                  <View style={styles.pickerContainer}>
+                    <Picker
+                      selectedValue={idSubcategoria}
+                      onValueChange={(itemValue) => setIdSubcategoria(itemValue)}
+                    >
+                      <Picker.Item label="Ninguna" value="" />
+                      {subcategorias.map(s => <Picker.Item key={s.id} label={s.nombre} value={s.id.toString()} />)}
+                    </Picker>
+                  </View>
+                </>
+              )}
+
+              <Text style={styles.label}>Método de Pago</Text>
+              <View style={styles.pickerContainer}>
+                <Picker
+                  selectedValue={idMetodopago}
+                  onValueChange={(itemValue) => setIdMetodopago(itemValue)}
+                >
+                  <Picker.Item label="Selecciona..." value="" />
+                  {metodos.map(m => <Picker.Item key={m.id} label={m.metodo} value={m.id.toString()} />)}
+                </Picker>
+              </View>
+
+              <Button title="Guardar Offline" onPress={handleAddMovimiento} color="#1976D2" />
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity style={styles.fab} onPress={() => setFormVisible(true)}>
+        <Text style={styles.fabText}>+</Text>
+      </TouchableOpacity>
 
       {selectedMov && (
         <Modal
@@ -632,5 +662,28 @@ const styles = StyleSheet.create({
     flex: 2,
     color: '#666',
     textAlign: 'right'
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 25,
+    right: 25,
+    backgroundColor: '#1976D2',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  fabText: {
+    color: 'white',
+    fontSize: 32,
+    lineHeight: 34,
+    fontWeight: 'bold',
+    textAlign: 'center'
   }
 });
