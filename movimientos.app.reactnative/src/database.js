@@ -69,6 +69,32 @@ export const addMovimiento = async (movimiento) => {
   }
 };
 
+export const updateMovimiento = async (movimiento) => {
+  const db = await getDb();
+  const statement = await db.prepareAsync(
+    `UPDATE Movimientos SET monto = $monto, cantidad = $cantidad, descripcion = $descripcion, 
+     fecha = $fecha, tipo = $tipo, id_categoria = $id_categoria, id_subcategoria = $id_subcategoria, 
+     id_metodopago = $id_metodopago, isSyncPending = $isSyncPending 
+     WHERE id = $id`
+  );
+  try {
+    await statement.executeAsync({
+      $id: movimiento.id,
+      $monto: movimiento.monto,
+      $cantidad: movimiento.cantidad,
+      $descripcion: movimiento.descripcion,
+      $fecha: movimiento.fecha,
+      $tipo: movimiento.tipo,
+      $id_categoria: movimiento.id_categoria,
+      $id_subcategoria: movimiento.id_subcategoria || null,
+      $id_metodopago: movimiento.id_metodopago,
+      $isSyncPending: 1
+    });
+  } finally {
+    await statement.finalizeAsync();
+  }
+};
+
 export const getPendingMovimientos = async () => {
   const db = await getDb();
   return await db.getAllAsync('SELECT * FROM Movimientos WHERE isSyncPending = 1');

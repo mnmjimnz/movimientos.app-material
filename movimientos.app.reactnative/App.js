@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, TextInput, Button, Alert, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Modal } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { initDb, addMovimiento, getPendingCount, getPendingMovimientos, deleteAllPendingMovimientos, getCategorias, getSubcategorias, getMetodosPago, saveCategorias, saveMetodosPago, deleteAllServerMovimientos, getAllMovimientos } from './src/database';
+import { initDb, addMovimiento, updateMovimiento, getPendingCount, getPendingMovimientos, deleteAllPendingMovimientos, getCategorias, getSubcategorias, getMetodosPago, saveCategorias, saveMetodosPago, deleteAllServerMovimientos, getAllMovimientos } from './src/database';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DashboardCharts from './src/components/DashboardCharts';
@@ -10,6 +10,7 @@ export default function App() {
   const [url, setUrl] = useState('');
   
   // Form State
+  const [editingId, setEditingId] = useState(null);
   const [desc, setDesc] = useState('');
   const [monto, setMonto] = useState('');
   const [tipo, setTipo] = useState('0'); // 0 Egreso, 1 Ingreso
@@ -140,10 +141,17 @@ export default function App() {
     };
     
     try {
-      await addMovimiento(mov);
-      Alert.alert("Guardado", "Movimiento guardado offline");
+      if (editingId) {
+        mov.id = editingId;
+        await updateMovimiento(mov);
+        Alert.alert("Guardado", "Movimiento actualizado offline");
+      } else {
+        await addMovimiento(mov);
+        Alert.alert("Guardado", "Movimiento guardado offline");
+      }
       
       // Reset form
+      setEditingId(null);
       setDesc('');
       setMonto('');
       setFecha(new Date());
@@ -171,7 +179,7 @@ export default function App() {
       const pendingMovs = await getPendingMovimientos();
       if (pendingMovs.length > 0) {
         const dtos = pendingMovs.map(m => ({
-          Id: m.id,
+          Id: m.id_server || 0,
           Monto: m.monto,
           Cantidad: m.cantidad,
           Descripcion: m.descripcion,
@@ -318,25 +326,49 @@ export default function App() {
           <View style={styles.card}>
             <Text style={styles.subtitle}>Mes Actual (Local + Servidor)</Text>
 
-            <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#eee'}}>
+            <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#eee'}}>
               <View>
                 <Text style={{color: 'gray', fontSize: 12}}>Total Ingresos</Text>
                 <Text style={{color: 'green', fontWeight: 'bold', fontSize: 16}}>
-                  ${movimientos.filter(m => m.tipo === 1 || m.tipo === 3).reduce((sum, m) => sum + parseFloat(m.monto), 0).toFixed(2)}
+                  ${movimientos.filter(m => m.tipo === 1).reduce((sum, m) => sum + parseFloat(m.monto), 0).toFixed(2)}
                 </Text>
               </View>
               <View>
                 <Text style={{color: 'gray', fontSize: 12}}>Total Egresos</Text>
                 <Text style={{color: 'red', fontWeight: 'bold', fontSize: 16}}>
-                  ${movimientos.filter(m => m.tipo === 0 || m.tipo === 2).reduce((sum, m) => sum + parseFloat(m.monto), 0).toFixed(2)}
+                  ${movimientos.filter(m => m.tipo === 0).reduce((sum, m) => sum + parseFloat(m.monto), 0).toFixed(2)}
                 </Text>
               </View>
               <View>
                 <Text style={{color: 'gray', fontSize: 12}}>Balance</Text>
                 <Text style={{color: '#333', fontWeight: 'bold', fontSize: 16}}>
                   ${(
-                    movimientos.filter(m => m.tipo === 1 || m.tipo === 3).reduce((sum, m) => sum + parseFloat(m.monto), 0) - 
-                    movimientos.filter(m => m.tipo === 0 || m.tipo === 2).reduce((sum, m) => sum + parseFloat(m.monto), 0)
+                    movimientos.filter(m => m.tipo === 1).reduce((sum, m) => sum + parseFloat(m.monto), 0) - 
+                    movimientos.filter(m => m.tipo === 0).reduce((sum, m) => sum + parseFloat(m.monto), 0)
+                  ).toFixed(2)}
+                </Text>
+              </View>
+            </View>
+
+            <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#eee'}}>
+              <View>
+                <Text style={{color: 'gray', fontSize: 12}}>Ingresos Virtuales</Text>
+                <Text style={{color: 'green', fontWeight: 'bold', fontSize: 16}}>
+                  ${movimientos.filter(m => m.tipo === 3).reduce((sum, m) => sum + parseFloat(m.monto), 0).toFixed(2)}
+                </Text>
+              </View>
+              <View>
+                <Text style={{color: 'gray', fontSize: 12}}>Egresos Virtuales</Text>
+                <Text style={{color: 'red', fontWeight: 'bold', fontSize: 16}}>
+                  ${movimientos.filter(m => m.tipo === 2).reduce((sum, m) => sum + parseFloat(m.monto), 0).toFixed(2)}
+                </Text>
+              </View>
+              <View>
+                <Text style={{color: 'gray', fontSize: 12}}>Balance Virtual</Text>
+                <Text style={{color: '#333', fontWeight: 'bold', fontSize: 16}}>
+                  ${(
+                    movimientos.filter(m => m.tipo === 3).reduce((sum, m) => sum + parseFloat(m.monto), 0) - 
+                    movimientos.filter(m => m.tipo === 2).reduce((sum, m) => sum + parseFloat(m.monto), 0)
                   ).toFixed(2)}
                 </Text>
               </View>
@@ -376,7 +408,7 @@ export default function App() {
           <ScrollView contentContainerStyle={{flexGrow: 1, justifyContent: 'center', alignItems: 'center'}} style={{width: '100%'}}>
             <View style={styles.modalContent}>
               <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15}}>
-                <Text style={[styles.subtitle, {marginBottom: 0, borderBottomWidth: 0}]}>Nuevo Movimiento</Text>
+                <Text style={[styles.subtitle, {marginBottom: 0, borderBottomWidth: 0}]}>{editingId ? 'Editar Movimiento' : 'Nuevo Movimiento'}</Text>
                 <TouchableOpacity onPress={() => setFormVisible(false)}>
                   <Text style={{color: '#d32f2f', fontWeight: 'bold', fontSize: 16}}>✕</Text>
                 </TouchableOpacity>
@@ -475,7 +507,16 @@ export default function App() {
       </Modal>
 
       {/* Floating Action Button */}
-      <TouchableOpacity style={styles.fab} onPress={() => setFormVisible(true)}>
+      <TouchableOpacity style={styles.fab} onPress={() => {
+        setEditingId(null);
+        setDesc('');
+        setMonto('');
+        setTipo('0');
+        setFecha(new Date());
+        setIdCategoria(categorias.length > 0 ? categorias[0].id.toString() : '');
+        setIdMetodopago(metodos.length > 0 ? metodos[0].id.toString() : '');
+        setFormVisible(true);
+      }}>
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
 
@@ -522,7 +563,21 @@ export default function App() {
               </View>
               
               <View style={{marginTop: 15}}>
-                <Button title="Cerrar" onPress={() => setModalVisible(false)} color="#1976D2" />
+                <Button title="Editar" onPress={() => {
+                  setEditingId(selectedMov.id);
+                  setDesc(selectedMov.descripcion);
+                  setMonto(selectedMov.monto.toString());
+                  setTipo(selectedMov.tipo.toString());
+                  setFecha(new Date(selectedMov.fecha));
+                  setIdCategoria(selectedMov.id_categoria ? selectedMov.id_categoria.toString() : '');
+                  setIdSubcategoria(selectedMov.id_subcategoria ? selectedMov.id_subcategoria.toString() : '');
+                  setIdMetodopago(selectedMov.id_metodopago ? selectedMov.id_metodopago.toString() : '');
+                  setModalVisible(false);
+                  setFormVisible(true);
+                }} color="#4caf50" />
+                <View style={{marginTop: 10}}>
+                  <Button title="Cerrar" onPress={() => setModalVisible(false)} color="#1976D2" />
+                </View>
               </View>
             </View>
           </View>

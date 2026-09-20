@@ -37,14 +37,42 @@ namespace movimientos.app.core.Infrastructure
 
         public async Task<int> AddMovimientosMasivosAsync(List<MovimientoDTO> movimientos)
         {
-            int inserted = 0;
-            string sql = @"INSERT INTO Movimientos (monto, cantidad, descripcion, fecha, tipo, id_categoria, id_metodopago, id_subcategoria) 
+            int processed = 0;
+            string insertSql = @"INSERT INTO Movimientos (monto, cantidad, descripcion, fecha, tipo, id_categoria, id_metodopago, id_subcategoria) 
                            VALUES (@Monto, @Cantidad, @Descripcion, @Fecha, @Tipo, @Id_Categoria, @id_metodopago, @id_subcategoria)";
+                           
+            string updateSql = @"UPDATE Movimientos SET 
+                            monto = @Monto, 
+                            cantidad = @Cantidad, 
+                            descripcion = @Descripcion, 
+                            fecha = @Fecha, 
+                            tipo = @Tipo, 
+                            id_categoria = @Id_Categoria ,
+                            id_metodopago = @id_metodopago,
+                            id_subcategoria = @id_subcategoria
+                          WHERE id = @Id";
+
             foreach (var m in movimientos)
             {
-                inserted += await _repository.InsertAsync(sql, m);
+                if (m.Id > 0)
+                {
+                    int updated = await _repository.UpdateAsync(updateSql, m);
+                    if (updated == 0)
+                    {
+                        // Opcional: si el ID no existe en la BD del servidor, insertarlo de todos modos.
+                        processed += await _repository.InsertAsync(insertSql, m);
+                    }
+                    else
+                    {
+                        processed += updated;
+                    }
+                }
+                else
+                {
+                    processed += await _repository.InsertAsync(insertSql, m);
+                }
             }
-            return inserted;
+            return processed;
         }
 
         public async Task<int> UpdateMovimientoAsync(MovimientoDTO movimiento)
