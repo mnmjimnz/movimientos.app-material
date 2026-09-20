@@ -1,11 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TextInput, Button, Alert, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Modal } from 'react-native';
+import { StyleSheet, Text, View, TextInput, Button, Alert, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initDb, addMovimiento, updateMovimiento, getPendingCount, getPendingMovimientos, deleteAllPendingMovimientos, getCategorias, getSubcategorias, getMetodosPago, saveCategorias, saveMetodosPago, deleteAllServerMovimientos, getAllMovimientos } from './src/database';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DashboardCharts from './src/components/DashboardCharts';
+import { lightTheme, darkTheme } from './src/theme';
 export default function App() {
+  const systemColorScheme = useColorScheme();
+  const [themePreference, setThemePreference] = useState('system');
+
+  const activeTheme = themePreference === 'system' 
+    ? (systemColorScheme === 'dark' ? darkTheme : lightTheme)
+    : (themePreference === 'dark' ? darkTheme : lightTheme);
+  
+  const styles = getStyles(activeTheme);
+  
   const [tab, setTab] = useState('charts'); // charts, form, list, settings
   const [url, setUrl] = useState('');
   
@@ -43,6 +53,8 @@ export default function App() {
       await initDb();
       const savedUrl = await AsyncStorage.getItem('serverUrl');
       if (savedUrl) setUrl(savedUrl);
+      const savedTheme = await AsyncStorage.getItem('themePreference');
+      if (savedTheme) setThemePreference(savedTheme);
       await loadCatalogs();
       await refreshData();
     }
@@ -285,11 +297,22 @@ export default function App() {
             movimientos={movimientos} 
             categorias={categorias} 
             metodos={metodos} 
+            theme={activeTheme} 
           />
         )}
         
         {tab === 'settings' && (
           <View>
+            <View style={styles.card}>
+              <Text style={styles.subtitle}>Apariencia</Text>
+              <Text style={{color: activeTheme.textSecondary, marginBottom: 10}}>Tema actual: {themePreference}</Text>
+              <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20}}>
+                <Button title="Sistema" onPress={() => {setThemePreference('system'); AsyncStorage.setItem('themePreference', 'system');}} color={themePreference === 'system' ? activeTheme.primary : 'gray'} />
+                <Button title="Claro" onPress={() => {setThemePreference('light'); AsyncStorage.setItem('themePreference', 'light');}} color={themePreference === 'light' ? activeTheme.primary : 'gray'} />
+                <Button title="Oscuro" onPress={() => {setThemePreference('dark'); AsyncStorage.setItem('themePreference', 'dark');}} color={themePreference === 'dark' ? activeTheme.primary : 'gray'} />
+              </View>
+            </View>
+
             <View style={styles.card}>
               <Text style={styles.subtitle}>Ajustes de Servidor</Text>
               <TextInput 
@@ -306,10 +329,10 @@ export default function App() {
 
             <View style={styles.card}>
               <Text style={styles.subtitle}>Sincronización Total</Text>
-              <Text style={{color: 'red', marginBottom: 10, fontWeight: 'bold'}}>
+              <Text style={{color: activeTheme.danger, marginBottom: 10, fontWeight: 'bold'}}>
                 Movimientos Locales sin subir: {pendingCount}
               </Text>
-              <Text style={{color: 'gray', marginBottom: 10}}>
+              <Text style={{color: activeTheme.textSecondary, marginBottom: 10}}>
                 Esto enviará tus datos locales y descargará los catálogos y el mes actual.
               </Text>
               {isSyncing ? (
@@ -326,22 +349,22 @@ export default function App() {
           <View style={styles.card}>
             <Text style={styles.subtitle}>Mes Actual (Local + Servidor)</Text>
 
-            <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#eee'}}>
+            <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: activeTheme.border}}>
               <View>
-                <Text style={{color: 'gray', fontSize: 12}}>Total Ingresos</Text>
-                <Text style={{color: 'green', fontWeight: 'bold', fontSize: 16}}>
+                <Text style={{color: activeTheme.textSecondary, fontSize: 12}}>Total Ingresos</Text>
+                <Text style={{color: activeTheme.success, fontWeight: 'bold', fontSize: 16}}>
                   ${movimientos.filter(m => m.tipo === 1).reduce((sum, m) => sum + parseFloat(m.monto), 0).toFixed(2)}
                 </Text>
               </View>
               <View>
-                <Text style={{color: 'gray', fontSize: 12}}>Total Egresos</Text>
-                <Text style={{color: 'red', fontWeight: 'bold', fontSize: 16}}>
+                <Text style={{color: activeTheme.textSecondary, fontSize: 12}}>Total Egresos</Text>
+                <Text style={{color: activeTheme.danger, fontWeight: 'bold', fontSize: 16}}>
                   ${movimientos.filter(m => m.tipo === 0).reduce((sum, m) => sum + parseFloat(m.monto), 0).toFixed(2)}
                 </Text>
               </View>
               <View>
-                <Text style={{color: 'gray', fontSize: 12}}>Balance</Text>
-                <Text style={{color: '#333', fontWeight: 'bold', fontSize: 16}}>
+                <Text style={{color: activeTheme.textSecondary, fontSize: 12}}>Balance</Text>
+                <Text style={{color: activeTheme.text, fontWeight: 'bold', fontSize: 16}}>
                   ${(
                     movimientos.filter(m => m.tipo === 1).reduce((sum, m) => sum + parseFloat(m.monto), 0) - 
                     movimientos.filter(m => m.tipo === 0).reduce((sum, m) => sum + parseFloat(m.monto), 0)
@@ -350,22 +373,22 @@ export default function App() {
               </View>
             </View>
 
-            <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: '#eee'}}>
+            <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: activeTheme.border}}>
               <View>
-                <Text style={{color: 'gray', fontSize: 12}}>Ingresos Virtuales</Text>
-                <Text style={{color: 'green', fontWeight: 'bold', fontSize: 16}}>
+                <Text style={{color: activeTheme.textSecondary, fontSize: 12}}>Ingresos Virtuales</Text>
+                <Text style={{color: activeTheme.success, fontWeight: 'bold', fontSize: 16}}>
                   ${movimientos.filter(m => m.tipo === 3).reduce((sum, m) => sum + parseFloat(m.monto), 0).toFixed(2)}
                 </Text>
               </View>
               <View>
-                <Text style={{color: 'gray', fontSize: 12}}>Egresos Virtuales</Text>
-                <Text style={{color: 'red', fontWeight: 'bold', fontSize: 16}}>
+                <Text style={{color: activeTheme.textSecondary, fontSize: 12}}>Egresos Virtuales</Text>
+                <Text style={{color: activeTheme.danger, fontWeight: 'bold', fontSize: 16}}>
                   ${movimientos.filter(m => m.tipo === 2).reduce((sum, m) => sum + parseFloat(m.monto), 0).toFixed(2)}
                 </Text>
               </View>
               <View>
-                <Text style={{color: 'gray', fontSize: 12}}>Balance Virtual</Text>
-                <Text style={{color: '#333', fontWeight: 'bold', fontSize: 16}}>
+                <Text style={{color: activeTheme.textSecondary, fontSize: 12}}>Balance Virtual</Text>
+                <Text style={{color: activeTheme.text, fontWeight: 'bold', fontSize: 16}}>
                   ${(
                     movimientos.filter(m => m.tipo === 3).reduce((sum, m) => sum + parseFloat(m.monto), 0) - 
                     movimientos.filter(m => m.tipo === 2).reduce((sum, m) => sum + parseFloat(m.monto), 0)
@@ -374,7 +397,7 @@ export default function App() {
               </View>
             </View>
 
-            {movimientos.length === 0 && <Text style={{fontStyle: 'italic', color: 'gray'}}>No hay movimientos. Sincroniza o agrega uno.</Text>}
+            {movimientos.length === 0 && <Text style={{fontStyle: 'italic', color: activeTheme.textSecondary}}>No hay movimientos. Sincroniza o agrega uno.</Text>}
             {movimientos.map(m => {
               const isPending = m.isSyncPending === 1;
               const dateStr = new Date(m.fecha).toLocaleDateString();
@@ -382,11 +405,11 @@ export default function App() {
               return (
                 <TouchableOpacity key={m.id} style={[styles.listItem, isPending && styles.listItemPending]} onPress={() => { setSelectedMov(m); setModalVisible(true); }}>
                   <View style={{flex: 1}}>
-                    <Text style={{fontWeight: 'bold'}}>{m.descripcion}</Text>
-                    <Text style={{fontSize: 12, color: 'gray'}}>{dateStr}</Text>
-                    {isPending && <Text style={{fontSize: 10, color: 'red'}}>PENDIENTE DE SUBIR</Text>}
+                    <Text style={{fontWeight: 'bold', color: activeTheme.text}}>{m.descripcion}</Text>
+                    <Text style={{fontSize: 12, color: activeTheme.textSecondary}}>{dateStr}</Text>
+                    {isPending && <Text style={{fontSize: 10, color: activeTheme.danger}}>PENDIENTE DE SUBIR</Text>}
                   </View>
-                  <Text style={{fontWeight: 'bold', color: isIngreso ? 'green' : 'red'}}>
+                  <Text style={{fontWeight: 'bold', color: isIngreso ? activeTheme.success : activeTheme.danger}}>
                     {isIngreso ? '+' : '-'}${m.monto}
                   </Text>
                 </TouchableOpacity>
@@ -410,7 +433,7 @@ export default function App() {
               <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15}}>
                 <Text style={[styles.subtitle, {marginBottom: 0, borderBottomWidth: 0}]}>{editingId ? 'Editar Movimiento' : 'Nuevo Movimiento'}</Text>
                 <TouchableOpacity onPress={() => setFormVisible(false)}>
-                  <Text style={{color: '#d32f2f', fontWeight: 'bold', fontSize: 16}}>✕</Text>
+                  <Text style={{color: activeTheme.danger, fontWeight: 'bold', fontSize: 16}}>✕</Text>
                 </TouchableOpacity>
               </View>
               
@@ -434,22 +457,22 @@ export default function App() {
               <Text style={styles.label}>Tipo</Text>
               <View style={{flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 15}}>
                 <View style={{width: '48%', marginBottom: 10}}>
-                  <Button title="Egreso" color={tipo === '0' ? '#e53935' : '#ccc'} onPress={() => setTipo('0')} />
+                  <Button title="Egreso" color={tipo === '0' ? activeTheme.danger : '#ccc'} onPress={() => setTipo('0')} />
                 </View>
                 <View style={{width: '48%', marginBottom: 10}}>
-                  <Button title="Ingreso" color={tipo === '1' ? '#4caf50' : '#ccc'} onPress={() => setTipo('1')} />
+                  <Button title="Ingreso" color={tipo === '1' ? activeTheme.success : '#ccc'} onPress={() => setTipo('1')} />
                 </View>
                 <View style={{width: '48%'}}>
-                  <Button title="Egreso V." color={tipo === '2' ? '#d32f2f' : '#ccc'} onPress={() => setTipo('2')} />
+                  <Button title="Egreso V." color={tipo === '2' ? activeTheme.dangerDark : '#ccc'} onPress={() => setTipo('2')} />
                 </View>
                 <View style={{width: '48%'}}>
-                  <Button title="Ingreso V." color={tipo === '3' ? '#388e3c' : '#ccc'} onPress={() => setTipo('3')} />
+                  <Button title="Ingreso V." color={tipo === '3' ? activeTheme.successDark : '#ccc'} onPress={() => setTipo('3')} />
                 </View>
               </View>
 
               <Text style={styles.label}>Fecha</Text>
               <TouchableOpacity style={styles.datePickerBtn} onPress={() => setShowDatePicker(true)}>
-                <Text>{fecha.toLocaleDateString()}</Text>
+                <Text style={{color: activeTheme.text}}>{fecha.toLocaleDateString()}</Text>
               </TouchableOpacity>
               {showDatePicker && (
                 <DateTimePicker
@@ -465,7 +488,7 @@ export default function App() {
 
               <Text style={styles.label}>Categoría</Text>
               <View style={styles.pickerContainer}>
-                <Picker
+                <Picker style={{color: activeTheme.text}} dropdownIconColor={activeTheme.text}
                   selectedValue={idCategoria}
                   onValueChange={(itemValue) => setIdCategoria(itemValue)}
                 >
@@ -478,7 +501,7 @@ export default function App() {
                 <>
                   <Text style={styles.label}>Subcategoría</Text>
                   <View style={styles.pickerContainer}>
-                    <Picker
+                    <Picker style={{color: activeTheme.text}} dropdownIconColor={activeTheme.text}
                       selectedValue={idSubcategoria}
                       onValueChange={(itemValue) => setIdSubcategoria(itemValue)}
                     >
@@ -491,7 +514,7 @@ export default function App() {
 
               <Text style={styles.label}>Método de Pago</Text>
               <View style={styles.pickerContainer}>
-                <Picker
+                <Picker style={{color: activeTheme.text}} dropdownIconColor={activeTheme.text}
                   selectedValue={idMetodopago}
                   onValueChange={(itemValue) => setIdMetodopago(itemValue)}
                 >
@@ -587,11 +610,11 @@ export default function App() {
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   container: {
     flex: 1,
     paddingTop: 40,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: theme.background,
   },
   scrollContent: {
     padding: 20,
@@ -605,7 +628,7 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    backgroundColor: '#e0e0e0',
+    backgroundColor: theme.tabBackground,
     marginHorizontal: 10,
     borderRadius: 8,
     overflow: 'hidden'
@@ -616,17 +639,17 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   tabActive: {
-    backgroundColor: '#1976D2'
+    backgroundColor: theme.tabActive
   },
   tabText: {
     fontWeight: 'bold',
-    color: '#555'
+    color: theme.tabText
   },
   tabTextActive: {
-    color: 'white'
+    color: theme.tabTextActive
   },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: theme.card,
     padding: 15,
     borderRadius: 10,
     marginBottom: 20,
@@ -641,37 +664,37 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: theme.border,
     paddingBottom: 5
   },
   label: {
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 5,
-    color: '#333'
+    color: theme.text
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: theme.border,
     padding: 10,
     borderRadius: 5,
     marginBottom: 15,
-    backgroundColor: '#fafafa'
+    backgroundColor: theme.inputBackground
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: theme.border,
     borderRadius: 5,
     marginBottom: 15,
-    backgroundColor: '#fafafa'
+    backgroundColor: theme.inputBackground
   },
   datePickerBtn: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: theme.border,
     padding: 12,
     borderRadius: 5,
     marginBottom: 15,
-    backgroundColor: '#fafafa',
+    backgroundColor: theme.inputBackground,
     alignItems: 'center'
   },
   listItem: {
@@ -679,20 +702,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee'
+    borderBottomColor: theme.border
   },
   listItemPending: {
-    backgroundColor: '#ffebee'
+    backgroundColor: theme.pendingBackground
   },
   modalBackground: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)'
+    backgroundColor: theme.modalBackground
   },
   modalContent: {
     width: '85%',
-    backgroundColor: 'white',
+    backgroundColor: theme.card,
     borderRadius: 10,
     padding: 20,
     elevation: 5,
@@ -705,24 +728,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: theme.border,
     paddingBottom: 5
   },
   detailLabel: {
     fontWeight: 'bold',
     flex: 1,
-    color: '#333'
+    color: theme.text
   },
   detailValue: {
     flex: 2,
-    color: '#666',
+    color: theme.textSecondary,
     textAlign: 'right'
   },
   fab: {
     position: 'absolute',
     bottom: 25,
     right: 25,
-    backgroundColor: '#1976D2',
+    backgroundColor: theme.tabActive,
     width: 60,
     height: 60,
     borderRadius: 30,
@@ -735,7 +758,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   fabText: {
-    color: 'white',
+    color: theme.tabTextActive,
     fontSize: 32,
     lineHeight: 34,
     fontWeight: 'bold',

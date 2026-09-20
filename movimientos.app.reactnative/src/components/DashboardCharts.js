@@ -4,23 +4,24 @@ import { PieChart, LineChart, BarChart } from 'react-native-chart-kit';
 
 const screenWidth = Dimensions.get('window').width;
 
-const chartConfig = {
-  backgroundGradientFrom: '#ffffff',
-  backgroundGradientTo: '#ffffff',
-  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+const getChartConfig = (theme) => ({
+  backgroundGradientFrom: theme.chartBackground,
+  backgroundGradientTo: theme.chartBackground,
+  color: (opacity = 1) => theme.chartLineLabel.replace('opacity', opacity),
   strokeWidth: 2,
   barPercentage: 0.5,
   useShadowColorFromDataset: false
-};
+});
 
 const defaultColors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#E7E9ED', '#f93154', '#00b74a', '#39c0ed'];
 
-const ChartSection = ({ title, data, isVirtual }) => {
+const ChartSection = ({ title, data, isVirtual, theme }) => {
+  const styles = getStyles(theme);
   const { ingresosTotales, egresosTotales, catData, dailyFlow, paymentMethodData } = data;
   
   const flowData = [
-    { name: 'Ingresos', population: ingresosTotales, color: '#00b74a', legendFontColor: '#333', legendFontSize: 14 },
-    { name: 'Egresos', population: egresosTotales, color: '#f93154', legendFontColor: '#333', legendFontSize: 14 }
+    { name: 'Ingresos', population: ingresosTotales, color: '#00b74a', legendFontColor: theme.chartLegendText, legendFontSize: 14 },
+    { name: 'Egresos', population: egresosTotales, color: '#f93154', legendFontColor: theme.chartLegendText, legendFontSize: 14 }
   ];
 
   return (
@@ -34,7 +35,7 @@ const ChartSection = ({ title, data, isVirtual }) => {
           data={flowData}
           width={screenWidth - 70}
           height={200}
-          chartConfig={chartConfig}
+          chartConfig={getChartConfig(theme)}
           accessor={"population"}
           backgroundColor={"transparent"}
           paddingLeft={"0"}
@@ -50,7 +51,7 @@ const ChartSection = ({ title, data, isVirtual }) => {
             data={catData}
             width={screenWidth - 70}
             height={200}
-            chartConfig={chartConfig}
+            chartConfig={getChartConfig(theme)}
             accessor={"population"}
             backgroundColor={"transparent"}
             paddingLeft={"0"}
@@ -67,9 +68,9 @@ const ChartSection = ({ title, data, isVirtual }) => {
           width={screenWidth - 70}
           height={220}
           chartConfig={{
-            ...chartConfig,
+            ...getChartConfig(theme),
             color: (opacity = 1) => isVirtual ? `rgba(153, 102, 255, ${opacity})` : `rgba(57, 192, 237, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+            labelColor: (opacity = 1) => theme.chartLineLabel.replace('opacity', opacity),
           }}
           bezier
           style={styles.chartStyle}
@@ -85,9 +86,9 @@ const ChartSection = ({ title, data, isVirtual }) => {
           height={220}
           yAxisLabel="$"
           chartConfig={{
-            ...chartConfig,
+            ...getChartConfig(theme),
             color: (opacity = 1) => `rgba(255, 169, 0, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+            labelColor: (opacity = 1) => theme.chartLineLabel.replace('opacity', opacity),
           }}
           style={styles.chartStyle}
         />
@@ -96,9 +97,10 @@ const ChartSection = ({ title, data, isVirtual }) => {
   );
 };
 
-export default function DashboardCharts({ movimientos, categorias, metodos }) {
+export default function DashboardCharts({ movimientos, categorias, metodos, theme }) {
+  const styles = getStyles(theme);
   
-  const calculateData = (isVirtual) => {
+  const calculateData = (isVirtual, theme) => {
     let ingresos = 0;
     let egresos = 0;
     const catMap = {};
@@ -150,7 +152,7 @@ export default function DashboardCharts({ movimientos, categorias, metodos }) {
       name: key,
       population: Math.round(catMap[key] * 100) / 100,
       color: defaultColors[index % defaultColors.length],
-      legendFontColor: '#7F7F7F',
+      legendFontColor: theme.chartLegendText,
       legendFontSize: 12
     }));
 
@@ -186,21 +188,21 @@ export default function DashboardCharts({ movimientos, categorias, metodos }) {
 
   const { realData, virtualData } = useMemo(() => {
     return {
-      realData: calculateData(false),
-      virtualData: calculateData(true)
+      realData: calculateData(false, theme),
+      virtualData: calculateData(true, theme)
     };
   }, [movimientos, categorias, metodos]);
 
   return (
     <View style={styles.container}>
-      <ChartSection title="Movimientos Reales" data={realData} isVirtual={false} />
+      <ChartSection title="Movimientos Reales" data={realData} isVirtual={false} theme={theme} />
       <View style={styles.divider} />
-      <ChartSection title="Movimientos Virtuales" data={virtualData} isVirtual={true} />
+      <ChartSection title="Movimientos Virtuales" data={virtualData} isVirtual={true} theme={theme} />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const getStyles = (theme) => StyleSheet.create({
   container: {
     paddingBottom: 20
   },
@@ -210,21 +212,21 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1976D2',
+    color: theme.primary,
     marginBottom: 15,
     marginTop: 10,
     borderBottomWidth: 2,
-    borderBottomColor: '#1976D2',
+    borderBottomColor: theme.primary,
     paddingBottom: 5,
     alignSelf: 'flex-start'
   },
   divider: {
     height: 1,
-    backgroundColor: '#ccc',
+    backgroundColor: theme.border,
     marginVertical: 20
   },
   card: {
-    backgroundColor: 'white',
+    backgroundColor: theme.card,
     padding: 15,
     borderRadius: 10,
     marginBottom: 20,
@@ -239,7 +241,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 10,
-    color: '#333',
+    color: theme.text,
     alignSelf: 'flex-start'
   },
   chartStyle: {
