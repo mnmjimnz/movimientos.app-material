@@ -11,15 +11,15 @@ export default function App() {
   const systemColorScheme = useColorScheme();
   const [themePreference, setThemePreference] = useState('system');
 
-  const activeTheme = themePreference === 'system' 
+  const activeTheme = themePreference === 'system'
     ? (systemColorScheme === 'dark' ? darkTheme : lightTheme)
     : (themePreference === 'dark' ? darkTheme : lightTheme);
-  
+
   const styles = getStyles(activeTheme);
-  
+
   const [tab, setTab] = useState('charts'); // charts, form, list, settings
   const [url, setUrl] = useState('');
-  
+
   // Form State
   const [editingId, setEditingId] = useState(null);
   const [desc, setDesc] = useState('');
@@ -38,7 +38,7 @@ export default function App() {
 
   // List State
   const [movimientos, setMovimientos] = useState([]);
-  
+
   // Sync State
   const [pendingCount, setPendingCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -74,7 +74,7 @@ export default function App() {
     const cats = await getCategorias();
     setCategorias(cats);
     if (cats.length > 0 && !idCategoria) setIdCategoria(cats[0].id.toString());
-    
+
     const mets = await getMetodosPago();
     setMetodos(mets);
     if (mets.length > 0 && !idMetodopago) setIdMetodopago(mets[0].id.toString());
@@ -113,7 +113,7 @@ export default function App() {
         formattedUrl = 'http://' + formattedUrl;
       }
       const baseUrl = formattedUrl.endsWith('/') ? formattedUrl : formattedUrl + '/';
-      
+
       const res = await fetch(`${baseUrl}api/movimientos/health`);
       if (res.ok) {
         Alert.alert("Conectado", "¡Conexión exitosa con el servidor!");
@@ -141,7 +141,7 @@ export default function App() {
       Alert.alert("Error", "Debes sincronizar al menos una vez para obtener catálogos");
       return;
     }
-    
+
     const mov = {
       monto: parseFloat(monto),
       cantidad: 1,
@@ -152,7 +152,7 @@ export default function App() {
       id_subcategoria: idSubcategoria ? parseInt(idSubcategoria) : null,
       id_metodopago: parseInt(idMetodopago)
     };
-    
+
     try {
       if (editingId) {
         mov.id = editingId;
@@ -162,7 +162,7 @@ export default function App() {
         await addMovimiento(mov);
         Alert.alert("Guardado", "Movimiento guardado offline");
       }
-      
+
       // Reset form
       setEditingId(null);
       setDesc('');
@@ -187,7 +187,7 @@ export default function App() {
         formattedUrl = 'http://' + formattedUrl;
       }
       const baseUrl = formattedUrl.endsWith('/') ? formattedUrl : formattedUrl + '/';
-      
+
       // 1. Enviar pendientes
       const pendingMovs = await getPendingMovimientos();
       if (pendingMovs.length > 0) {
@@ -240,7 +240,7 @@ export default function App() {
 
       // 3. Descargar Movimientos actuales
       const now = new Date();
-      const movsRes = await fetch(`${baseUrl}api/movimientos/todoslosmovimientos?mes=${now.getMonth()+1}&anio=${now.getFullYear()}`);
+      const movsRes = await fetch(`${baseUrl}api/movimientos/todoslosmovimientos?mes=${now.getMonth() + 1}&anio=${now.getFullYear()}`);
       if (movsRes.ok) {
         const movs = await movsRes.json();
         await deleteAllServerMovimientos();
@@ -263,7 +263,7 @@ export default function App() {
       Alert.alert("Éxito", "Sincronización completa");
       await loadCatalogs();
       await refreshData();
-      
+
     } catch (error) {
       Alert.alert("Error de conexión", error.message);
     } finally {
@@ -274,7 +274,7 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Registro de movmientos offline</Text>
-      
+
       <View style={styles.tabContainer}>
         <TouchableOpacity style={[styles.tab, tab === 'charts' && styles.tabActive]} onPress={() => setTab('charts')}>
           <Text style={[styles.tabText, tab === 'charts' && styles.tabTextActive]}>Gráficos</Text>
@@ -290,49 +290,49 @@ export default function App() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
         {tab === 'charts' && (
-          <DashboardCharts url={url} 
-            movimientos={movimientos} 
-            categorias={categorias} 
-            metodos={metodos} 
-            theme={activeTheme} 
+          <DashboardCharts url={url}
+            movimientos={movimientos}
+            categorias={categorias}
+            metodos={metodos}
+            theme={activeTheme}
           />
         )}
-        
+
         {tab === 'annual' && (
-          <AnnualSummary 
-            url={url} 
-            theme={activeTheme} 
+          <AnnualSummary
+            url={url}
+            theme={activeTheme}
           />
         )}
-        
+
         {tab === 'settings' && (
           <View>
             <View style={styles.card}>
               <Text style={styles.subtitle}>Apariencia</Text>
-              <Text style={{color: activeTheme.textSecondary, marginBottom: 10}}>Tema actual: {themePreference}</Text>
-              <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20}}>
-                <Button title="Sistema" onPress={() => {setThemePreference('system'); AsyncStorage.setItem('themePreference', 'system');}} color={themePreference === 'system' ? activeTheme.primary : 'gray'} />
-                <Button title="Claro" onPress={() => {setThemePreference('light'); AsyncStorage.setItem('themePreference', 'light');}} color={themePreference === 'light' ? activeTheme.primary : 'gray'} />
-                <Button title="Oscuro" onPress={() => {setThemePreference('dark'); AsyncStorage.setItem('themePreference', 'dark');}} color={themePreference === 'dark' ? activeTheme.primary : 'gray'} />
+              <Text style={{ color: activeTheme.textSecondary, marginBottom: 10 }}>Tema actual: {themePreference}</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}>
+                <Button title="Sistema" onPress={() => { setThemePreference('system'); AsyncStorage.setItem('themePreference', 'system'); }} color={themePreference === 'system' ? activeTheme.primary : 'gray'} />
+                <Button title="Claro" onPress={() => { setThemePreference('light'); AsyncStorage.setItem('themePreference', 'light'); }} color={themePreference === 'light' ? activeTheme.primary : 'gray'} />
+                <Button title="Oscuro" onPress={() => { setThemePreference('dark'); AsyncStorage.setItem('themePreference', 'dark'); }} color={themePreference === 'dark' ? activeTheme.primary : 'gray'} />
               </View>
             </View>
 
             <View style={styles.card}>
               <Text style={styles.subtitle}>Ajustes de Servidor</Text>
-              <TextInput 
-                style={styles.input} placeholderTextColor={activeTheme.textSecondary} 
-                placeholder="http://192.168.1.X:8090/" 
+              <TextInput
+                style={styles.input} placeholderTextColor={activeTheme.textSecondary}
+                placeholder="http://192.168.1.X:8090/"
                 value={url}
                 onChangeText={setUrl}
               />
-              <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                 <Button title="Guardar URL" onPress={handleSaveUrl} />
                 <Button title="Probar Conexión" onPress={handleTestConnection} color="#757575" />
               </View>
@@ -340,10 +340,10 @@ export default function App() {
 
             <View style={styles.card}>
               <Text style={styles.subtitle}>Sincronización Total</Text>
-              <Text style={{color: activeTheme.danger, marginBottom: 10, fontWeight: 'bold'}}>
+              <Text style={{ color: activeTheme.danger, marginBottom: 10, fontWeight: 'bold' }}>
                 Movimientos Locales sin subir: {pendingCount}
               </Text>
-              <Text style={{color: activeTheme.textSecondary, marginBottom: 10}}>
+              <Text style={{ color: activeTheme.textSecondary, marginBottom: 10 }}>
                 Esto enviará tus datos locales y descargará los catálogos y el mes actual.
               </Text>
               {isSyncing ? (
@@ -360,64 +360,64 @@ export default function App() {
           <View style={styles.card}>
             <Text style={styles.subtitle}>Mes Actual (Local + Servidor)</Text>
 
-            <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: activeTheme.border}}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: activeTheme.border }}>
               <View>
-                <Text style={{color: activeTheme.textSecondary, fontSize: 12}}>Total Ingresos</Text>
-                <Text style={{color: activeTheme.success, fontWeight: 'bold', fontSize: 16}}>
+                <Text style={{ color: activeTheme.textSecondary, fontSize: 12 }}>Total Ingresos</Text>
+                <Text style={{ color: activeTheme.success, fontWeight: 'bold', fontSize: 16 }}>
                   ${movimientos.filter(m => m.tipo === 1).reduce((sum, m) => sum + parseFloat(m.monto), 0).toFixed(2)}
                 </Text>
               </View>
               <View>
-                <Text style={{color: activeTheme.textSecondary, fontSize: 12}}>Total Egresos</Text>
-                <Text style={{color: activeTheme.danger, fontWeight: 'bold', fontSize: 16}}>
+                <Text style={{ color: activeTheme.textSecondary, fontSize: 12 }}>Total Egresos</Text>
+                <Text style={{ color: activeTheme.danger, fontWeight: 'bold', fontSize: 16 }}>
                   ${movimientos.filter(m => m.tipo === 0).reduce((sum, m) => sum + parseFloat(m.monto), 0).toFixed(2)}
                 </Text>
               </View>
               <View>
-                <Text style={{color: activeTheme.textSecondary, fontSize: 12}}>Balance</Text>
-                <Text style={{color: activeTheme.text, fontWeight: 'bold', fontSize: 16}}>
+                <Text style={{ color: activeTheme.textSecondary, fontSize: 12 }}>Balance</Text>
+                <Text style={{ color: activeTheme.text, fontWeight: 'bold', fontSize: 16 }}>
                   ${(
-                    movimientos.filter(m => m.tipo === 1).reduce((sum, m) => sum + parseFloat(m.monto), 0) - 
+                    movimientos.filter(m => m.tipo === 1).reduce((sum, m) => sum + parseFloat(m.monto), 0) -
                     movimientos.filter(m => m.tipo === 0).reduce((sum, m) => sum + parseFloat(m.monto), 0)
                   ).toFixed(2)}
                 </Text>
               </View>
             </View>
 
-            <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: activeTheme.border}}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: activeTheme.border }}>
               <View>
-                <Text style={{color: activeTheme.textSecondary, fontSize: 12}}>Ingresos Virtuales</Text>
-                <Text style={{color: activeTheme.success, fontWeight: 'bold', fontSize: 16}}>
+                <Text style={{ color: activeTheme.textSecondary, fontSize: 12 }}>Ingresos Virtuales</Text>
+                <Text style={{ color: activeTheme.success, fontWeight: 'bold', fontSize: 16 }}>
                   ${movimientos.filter(m => m.tipo === 3).reduce((sum, m) => sum + parseFloat(m.monto), 0).toFixed(2)}
                 </Text>
               </View>
               <View>
-                <Text style={{color: activeTheme.textSecondary, fontSize: 12}}>Egresos Virtuales</Text>
-                <Text style={{color: activeTheme.danger, fontWeight: 'bold', fontSize: 16}}>
+                <Text style={{ color: activeTheme.textSecondary, fontSize: 12 }}>Egresos Virtuales</Text>
+                <Text style={{ color: activeTheme.danger, fontWeight: 'bold', fontSize: 16 }}>
                   ${movimientos.filter(m => m.tipo === 2).reduce((sum, m) => sum + parseFloat(m.monto), 0).toFixed(2)}
                 </Text>
               </View>
               <View>
-                <Text style={{color: activeTheme.textSecondary, fontSize: 12}}>Balance Virtual</Text>
-                <Text style={{color: activeTheme.text, fontWeight: 'bold', fontSize: 16}}>
+                <Text style={{ color: activeTheme.textSecondary, fontSize: 12 }}>Balance Virtual</Text>
+                <Text style={{ color: activeTheme.text, fontWeight: 'bold', fontSize: 16 }}>
                   ${(movimientos.filter(m => m.tipo === 1 || m.tipo === 3).reduce((sum, m) => sum + parseFloat(m.monto), 0) - movimientos.filter(m => m.tipo === 0 || m.tipo === 2).reduce((sum, m) => sum + parseFloat(m.monto), 0)).toFixed(2)}
                 </Text>
               </View>
             </View>
 
-            {movimientos.length === 0 && <Text style={{fontStyle: 'italic', color: activeTheme.textSecondary}}>No hay movimientos. Sincroniza o agrega uno.</Text>}
+            {movimientos.length === 0 && <Text style={{ fontStyle: 'italic', color: activeTheme.textSecondary }}>No hay movimientos. Sincroniza o agrega uno.</Text>}
             {movimientos.map(m => {
               const isPending = m.isSyncPending === 1;
               const dateStr = new Date(m.fecha).toLocaleDateString();
               const isIngreso = m.tipo === 1 || m.tipo === 3;
               return (
                 <TouchableOpacity key={m.id} style={[styles.listItem, isPending && styles.listItemPending]} onPress={() => { setSelectedMov(m); setModalVisible(true); }}>
-                  <View style={{flex: 1}}>
-                    <Text style={{fontWeight: 'bold', color: activeTheme.text}}>{m.descripcion}</Text>
-                    <Text style={{fontSize: 12, color: activeTheme.textSecondary}}>{dateStr}</Text>
-                    {isPending && <Text style={{fontSize: 10, color: activeTheme.danger}}>PENDIENTE DE SUBIR</Text>}
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontWeight: 'bold', color: activeTheme.text }}>{m.descripcion}</Text>
+                    <Text style={{ fontSize: 12, color: activeTheme.textSecondary }}>{dateStr}</Text>
+                    {isPending && <Text style={{ fontSize: 10, color: activeTheme.danger }}>PENDIENTE DE SUBIR</Text>}
                   </View>
-                  <Text style={{fontWeight: 'bold', color: isIngreso ? activeTheme.success : activeTheme.danger}}>
+                  <Text style={{ fontWeight: 'bold', color: isIngreso ? activeTheme.success : activeTheme.danger }}>
                     {isIngreso ? '+' : '-'}${m.monto}
                   </Text>
                 </TouchableOpacity>
@@ -436,51 +436,51 @@ export default function App() {
         onRequestClose={() => setFormVisible(false)}
       >
         <View style={styles.modalBackground}>
-          <ScrollView contentContainerStyle={{flexGrow: 1, justifyContent: 'center', alignItems: 'center'}} style={{width: '100%'}}>
+          <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', alignItems: 'center' }} style={{ width: '100%' }}>
             <View style={styles.modalContent}>
-              <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15}}>
-                <Text style={[styles.subtitle, {marginBottom: 0, borderBottomWidth: 0}]}>{editingId ? 'Editar Movimiento' : 'Nuevo Movimiento'}</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+                <Text style={[styles.subtitle, { marginBottom: 0, borderBottomWidth: 0 }]}>{editingId ? 'Editar Movimiento' : 'Nuevo Movimiento'}</Text>
                 <TouchableOpacity onPress={() => setFormVisible(false)}>
-                  <Text style={{color: activeTheme.danger, fontWeight: 'bold', fontSize: 16}}>✕</Text>
+                  <Text style={{ color: activeTheme.danger, fontWeight: 'bold', fontSize: 16 }}>✕</Text>
                 </TouchableOpacity>
               </View>
-              
+
               <Text style={styles.label}>Descripción</Text>
-              <TextInput 
-                style={styles.input} placeholderTextColor={activeTheme.textSecondary} 
-                placeholder="Ej. Supermercado" 
+              <TextInput
+                style={styles.input} placeholderTextColor={activeTheme.textSecondary}
+                placeholder="Ej. Supermercado"
                 value={desc}
                 onChangeText={setDesc}
               />
 
               <Text style={styles.label}>Monto</Text>
-              <TextInput 
-                style={styles.input} placeholderTextColor={activeTheme.textSecondary} 
-                placeholder="0.00" 
+              <TextInput
+                style={styles.input} placeholderTextColor={activeTheme.textSecondary}
+                placeholder="0.00"
                 keyboardType="numeric"
                 value={monto}
                 onChangeText={setMonto}
               />
 
               <Text style={styles.label}>Tipo</Text>
-              <View style={{flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 15}}>
-                <View style={{width: '48%', marginBottom: 10}}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 15 }}>
+                <View style={{ width: '48%', marginBottom: 10 }}>
                   <Button title="Egreso" color={tipo === '0' ? activeTheme.danger : '#ccc'} onPress={() => setTipo('0')} />
                 </View>
-                <View style={{width: '48%', marginBottom: 10}}>
+                <View style={{ width: '48%', marginBottom: 10 }}>
                   <Button title="Ingreso" color={tipo === '1' ? activeTheme.success : '#ccc'} onPress={() => setTipo('1')} />
                 </View>
-                <View style={{width: '48%'}}>
+                <View style={{ width: '48%' }}>
                   <Button title="Egreso V." color={tipo === '2' ? activeTheme.dangerDark : '#ccc'} onPress={() => setTipo('2')} />
                 </View>
-                <View style={{width: '48%'}}>
+                <View style={{ width: '48%' }}>
                   <Button title="Ingreso V." color={tipo === '3' ? activeTheme.successDark : '#ccc'} onPress={() => setTipo('3')} />
                 </View>
               </View>
 
               <Text style={styles.label}>Fecha</Text>
               <TouchableOpacity style={styles.datePickerBtn} onPress={() => setShowDatePicker(true)}>
-                <Text style={{color: activeTheme.text}}>{fecha.toLocaleDateString()}</Text>
+                <Text style={{ color: activeTheme.text }}>{fecha.toLocaleDateString()}</Text>
               </TouchableOpacity>
               {showDatePicker && (
                 <DateTimePicker
@@ -496,7 +496,7 @@ export default function App() {
 
               <Text style={styles.label}>Categoría</Text>
               <View style={styles.pickerContainer}>
-                <Picker style={{color: activeTheme.text}} dropdownIconColor={activeTheme.text}
+                <Picker style={{ color: activeTheme.text }} dropdownIconColor={activeTheme.text}
                   selectedValue={idCategoria}
                   onValueChange={(itemValue) => setIdCategoria(itemValue)}
                 >
@@ -509,7 +509,7 @@ export default function App() {
                 <>
                   <Text style={styles.label}>Subcategoría</Text>
                   <View style={styles.pickerContainer}>
-                    <Picker style={{color: activeTheme.text}} dropdownIconColor={activeTheme.text}
+                    <Picker style={{ color: activeTheme.text }} dropdownIconColor={activeTheme.text}
                       selectedValue={idSubcategoria}
                       onValueChange={(itemValue) => setIdSubcategoria(itemValue)}
                     >
@@ -522,7 +522,7 @@ export default function App() {
 
               <Text style={styles.label}>Método de Pago</Text>
               <View style={styles.pickerContainer}>
-                <Picker style={{color: activeTheme.text}} dropdownIconColor={activeTheme.text}
+                <Picker style={{ color: activeTheme.text }} dropdownIconColor={activeTheme.text}
                   selectedValue={idMetodopago}
                   onValueChange={(itemValue) => setIdMetodopago(itemValue)}
                 >
@@ -561,7 +561,7 @@ export default function App() {
           <View style={styles.modalBackground}>
             <View style={styles.modalContent}>
               <Text style={styles.subtitle}>Detalles del Movimiento</Text>
-              
+
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Descripción:</Text>
                 <Text style={styles.detailValue}>{selectedMov.descripcion}</Text>
@@ -592,27 +592,29 @@ export default function App() {
                   {metodos.find(m => m.id == selectedMov.id_metodopago)?.metodo || selectedMov.id_metodopago}
                 </Text>
               </View>
-              
-              <View style={{marginTop: 15}}>
+
+              <View style={{ marginTop: 15 }}>
                 {selectedMov && selectedMov.isSyncPending === 1 && (
-                  <View style={{marginBottom: 10}}>
+                  <View style={{ marginBottom: 10 }}>
                     <Button title="Eliminar (No Sincronizado)" color={activeTheme.danger} onPress={() => {
                       Alert.alert(
                         "Confirmar Eliminación",
                         "¿Estás seguro de que quieres eliminar este movimiento que aún no se sincroniza?",
                         [
                           { text: "Cancelar", style: "cancel" },
-                          { text: "Eliminar", style: "destructive", onPress: async () => {
+                          {
+                            text: "Eliminar", style: "destructive", onPress: async () => {
                               await deleteMovimiento(selectedMov.id);
                               setModalVisible(false);
                               refreshData();
-                          }}
+                            }
+                          }
                         ]
                       );
                     }} />
                   </View>
                 )}
-                
+
                 <Button title="Editar" onPress={() => {
                   setEditingId(selectedMov.id);
                   setDesc(selectedMov.descripcion);
@@ -625,7 +627,7 @@ export default function App() {
                   setModalVisible(false);
                   setFormVisible(true);
                 }} color="#4caf50" />
-                <View style={{marginTop: 10}}>
+                <View style={{ marginTop: 10 }}>
                   <Button title="Cerrar" onPress={() => setModalVisible(false)} color="#1976D2" />
                 </View>
               </View>
@@ -651,7 +653,8 @@ const getStyles = (theme) => StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 10
+    marginBottom: 10,
+    color: theme.text
   },
   tabContainer: {
     flexDirection: 'row',
@@ -692,7 +695,8 @@ const getStyles = (theme) => StyleSheet.create({
     marginBottom: 15,
     borderBottomWidth: 1,
     borderBottomColor: theme.border,
-    paddingBottom: 5
+    paddingBottom: 5,
+    color: theme.text,
   },
   label: {
     fontSize: 14,
@@ -706,7 +710,8 @@ const getStyles = (theme) => StyleSheet.create({
     padding: 10,
     borderRadius: 5,
     marginBottom: 15,
-    backgroundColor: theme.inputBackground
+    backgroundColor: theme.inputBackground,
+    color: theme.text
   },
   pickerContainer: {
     borderWidth: 1,
