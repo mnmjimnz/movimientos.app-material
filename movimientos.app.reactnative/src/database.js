@@ -95,6 +95,12 @@ export const updateMovimiento = async (movimiento) => {
   }
 };
 
+
+export const deleteMovimiento = async (id) => {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM Movimientos WHERE id = ?', [id]);
+};
+
 export const getPendingMovimientos = async () => {
   const db = await getDb();
   return await db.getAllAsync('SELECT * FROM Movimientos WHERE isSyncPending = 1');

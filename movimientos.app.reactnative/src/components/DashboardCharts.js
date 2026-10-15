@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, Dimensions, ActivityIndicator } from 'react-native';
 import { PieChart, LineChart, BarChart } from 'react-native-chart-kit';
 
 const screenWidth = Dimensions.get('window').width;
@@ -97,9 +97,111 @@ const ChartSection = ({ title, data, isVirtual, theme }) => {
   );
 };
 
-export default function DashboardCharts({ movimientos, categorias, metodos, theme }) {
+
+const AnnualChartSection = ({ title, data, theme }) => {
   const styles = getStyles(theme);
   
+  if (!data || data.length === 0) return null;
+
+  const labels = data.map(m => m.mes.substring(5)); // just month
+  const ingresos = data.map(m => parseFloat(m.ingresos_proyectados));
+  const egresos = data.map(m => parseFloat(m.egresos_proyectados));
+
+  const chartData = {
+    labels: labels.length > 0 ? labels : ['N/A'],
+    datasets: [
+      {
+        data: ingresos.length > 0 ? ingresos : [0],
+        color: (opacity = 1) => `rgba(0, 183, 74, ${opacity})`,
+        strokeWidth: 2
+      },
+      {
+        data: egresos.length > 0 ? egresos : [0],
+        color: (opacity = 1) => `rgba(249, 49, 84, ${opacity})`,
+        strokeWidth: 2
+      }
+    ],
+    legend: ["Ingresos", "Egresos"]
+  };
+
+  return (
+    <View style={styles.card}>
+      <Text style={styles.title}>{title}</Text>
+      <LineChart
+        data={chartData}
+        width={screenWidth - 70}
+        height={250}
+        chartConfig={{
+          ...getChartConfig(theme),
+          color: (opacity = 1) => theme.chartLineLabel.replace('opacity', opacity),
+          labelColor: (opacity = 1) => theme.chartLineLabel.replace('opacity', opacity),
+        }}
+        bezier
+        style={styles.chartStyle}
+      />
+    </View>
+  );
+};
+
+export default function DashboardCharts({ movimientos, categorias, metodos, theme, url }) {
+  const styles = getStyles(theme);
+  
+  
+  const [annualData, setAnnualData] = useState(null);
+  const [loadingAnnual, setLoadingAnnual] = useState(false);
+
+  const fetchAnnualData = useCallback(async () => {
+    if (!url) return;
+    setLoadingAnnual(true);
+    try {
+      let formattedUrl = url.trim();
+      if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
+        formattedUrl = 'http://' + formattedUrl;
+      }
+      const baseUrl = formattedUrl.endsWith('/') ? formattedUrl : formattedUrl + '/';
+      const year = new Date().getFullYear();
+      const res = await fetch(`${baseUrl}api/movimientos/movimientosvirtualesanuales?anio=${year}`);
+      if (res.ok) {
+        const json = await res.json();
+        setAnnualData(json);
+      }
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setLoadingAnnual(false);
+    }
+  }, [url]);
+
+  useEffect(() => {
+    fetchAnnualData();
+  }, [fetchAnnualData]);
+
+  const { processedConfirmados, processedVirtuales } = useMemo(() => {
+    if (!annualData) return { processedConfirmados: [], processedVirtuales: [] };
+
+    const fechaActual = new Date();
+    const mesActualStr = `${fechaActual.getFullYear()}-${String(fechaActual.getMonth() + 1).padStart(2, '0')}`;
+    let saldoAnterior = 0;
+
+    const vData = (annualData.virtuales || []).map(mov => {
+      let ingresos = parseFloat(mov.ingresos_proyectados);
+      let egresos = parseFloat(mov.egresos_proyectados);
+      let saldo = parseFloat(mov.saldo_proyectado);
+      
+      if (mov.mes > mesActualStr) {
+        ingresos += saldoAnterior;
+        saldo = ingresos - egresos;
+      }
+      saldoAnterior = saldo;
+      return { ...mov, ingresos_proyectados: ingresos, egresos_proyectados: egresos };
+    });
+
+    return {
+      processedConfirmados: annualData.confirmados || [],
+      processedVirtuales: vData
+    };
+  }, [annualData]);
+
   const calculateData = (isVirtual, theme) => {
     let ingresos = 0;
     let egresos = 0;
@@ -196,8 +298,21 @@ export default function DashboardCharts({ movimientos, categorias, metodos, them
   return (
     <View style={styles.container}>
       <ChartSection title="Movimientos Reales" data={realData} isVirtual={false} theme={theme} />
+      
+      {loadingAnnual ? (
+        <ActivityIndicator size="large" color={theme.primary} style={{marginVertical: 20}} />
+      ) : (
+        <>
+          <AnnualChartSection title="Histórico Anual (Ingresos vs Egresos Reales)" data={processedConfirmados} theme={theme} />
+        </>
+      )}
+
       <View style={styles.divider} />
       <ChartSection title="Movimientos Virtuales" data={virtualData} isVirtual={true} theme={theme} />
+      
+      {!loadingAnnual && (
+        <AnnualChartSection title="Histórico Anual Virtual (Ingresos vs Egresos)" data={processedVirtuales} theme={theme} />
+      )}
     </View>
   );
 }

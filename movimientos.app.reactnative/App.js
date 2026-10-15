@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, TextInput, Button, Alert, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl, Modal, useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { initDb, addMovimiento, updateMovimiento, getPendingCount, getPendingMovimientos, deleteAllPendingMovimientos, getCategorias, getSubcategorias, getMetodosPago, saveCategorias, saveMetodosPago, deleteAllServerMovimientos, getAllMovimientos } from './src/database';
+import { initDb, addMovimiento, updateMovimiento, deleteMovimiento, getPendingCount, getPendingMovimientos, deleteAllPendingMovimientos, getCategorias, getSubcategorias, getMetodosPago, saveCategorias, saveMetodosPago, deleteAllServerMovimientos, getAllMovimientos } from './src/database';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import DashboardCharts from './src/components/DashboardCharts';
+import AnnualSummary from './src/components/AnnualSummary';
 import { lightTheme, darkTheme } from './src/theme';
 export default function App() {
   const systemColorScheme = useColorScheme();
@@ -281,6 +282,9 @@ export default function App() {
         <TouchableOpacity style={[styles.tab, tab === 'list' && styles.tabActive]} onPress={() => setTab('list')}>
           <Text style={[styles.tabText, tab === 'list' && styles.tabTextActive]}>Historial</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={[styles.tab, tab === 'annual' && styles.tabActive]} onPress={() => setTab('annual')}>
+          <Text style={[styles.tabText, tab === 'annual' && styles.tabTextActive]}>Anual</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={[styles.tab, tab === 'settings' && styles.tabActive]} onPress={() => setTab('settings')}>
           <Text style={[styles.tabText, tab === 'settings' && styles.tabTextActive]}>Ajustes</Text>
         </TouchableOpacity>
@@ -293,10 +297,17 @@ export default function App() {
         }
       >
         {tab === 'charts' && (
-          <DashboardCharts 
+          <DashboardCharts url={url} 
             movimientos={movimientos} 
             categorias={categorias} 
             metodos={metodos} 
+            theme={activeTheme} 
+          />
+        )}
+        
+        {tab === 'annual' && (
+          <AnnualSummary 
+            url={url} 
             theme={activeTheme} 
           />
         )}
@@ -316,7 +327,7 @@ export default function App() {
             <View style={styles.card}>
               <Text style={styles.subtitle}>Ajustes de Servidor</Text>
               <TextInput 
-                style={styles.input} 
+                style={styles.input} placeholderTextColor={activeTheme.textSecondary} 
                 placeholder="http://192.168.1.X:8090/" 
                 value={url}
                 onChangeText={setUrl}
@@ -389,10 +400,7 @@ export default function App() {
               <View>
                 <Text style={{color: activeTheme.textSecondary, fontSize: 12}}>Balance Virtual</Text>
                 <Text style={{color: activeTheme.text, fontWeight: 'bold', fontSize: 16}}>
-                  ${(
-                    movimientos.filter(m => m.tipo === 3).reduce((sum, m) => sum + parseFloat(m.monto), 0) - 
-                    movimientos.filter(m => m.tipo === 2).reduce((sum, m) => sum + parseFloat(m.monto), 0)
-                  ).toFixed(2)}
+                  ${(movimientos.filter(m => m.tipo === 1 || m.tipo === 3).reduce((sum, m) => sum + parseFloat(m.monto), 0) - movimientos.filter(m => m.tipo === 0 || m.tipo === 2).reduce((sum, m) => sum + parseFloat(m.monto), 0)).toFixed(2)}
                 </Text>
               </View>
             </View>
@@ -439,7 +447,7 @@ export default function App() {
               
               <Text style={styles.label}>Descripción</Text>
               <TextInput 
-                style={styles.input} 
+                style={styles.input} placeholderTextColor={activeTheme.textSecondary} 
                 placeholder="Ej. Supermercado" 
                 value={desc}
                 onChangeText={setDesc}
@@ -447,7 +455,7 @@ export default function App() {
 
               <Text style={styles.label}>Monto</Text>
               <TextInput 
-                style={styles.input} 
+                style={styles.input} placeholderTextColor={activeTheme.textSecondary} 
                 placeholder="0.00" 
                 keyboardType="numeric"
                 value={monto}
@@ -586,6 +594,25 @@ export default function App() {
               </View>
               
               <View style={{marginTop: 15}}>
+                {selectedMov && selectedMov.isSyncPending === 1 && (
+                  <View style={{marginBottom: 10}}>
+                    <Button title="Eliminar (No Sincronizado)" color={activeTheme.danger} onPress={() => {
+                      Alert.alert(
+                        "Confirmar Eliminación",
+                        "¿Estás seguro de que quieres eliminar este movimiento que aún no se sincroniza?",
+                        [
+                          { text: "Cancelar", style: "cancel" },
+                          { text: "Eliminar", style: "destructive", onPress: async () => {
+                              await deleteMovimiento(selectedMov.id);
+                              setModalVisible(false);
+                              refreshData();
+                          }}
+                        ]
+                      );
+                    }} />
+                  </View>
+                )}
+                
                 <Button title="Editar" onPress={() => {
                   setEditingId(selectedMov.id);
                   setDesc(selectedMov.descripcion);

@@ -40,6 +40,6 @@ export const darkTheme = {
   pendingBackground: '#4a0000',
   modalBackground: 'rgba(0,0,0,0.8)',
   chartBackground: '#1e1e1e',
-  chartLegendText: '#aaaaaa',
+  chartLegendText: '#ffffff',
   chartLineLabel: 'rgba(255,255,255,opacity)'
 };
